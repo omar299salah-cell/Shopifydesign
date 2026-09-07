@@ -1,0 +1,17 @@
+{
+  "sections": {
+    "main": {
+      "type": "main-product",
+      "settings": {}
+    },
+    "recommendations": {
+      "type": "product-recommendations",
+      "settings": {
+        "eyebrow": "You might also like",
+        "heading": "Complete the kit.",
+        "products_to_show": 4
+      }
+    }
+  },
+  "order": ["main", "recommendations"]
+}

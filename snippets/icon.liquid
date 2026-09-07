@@ -1,0 +1,54 @@
+{%- comment -%}
+  Renders an inline SVG icon.
+  Usage: {% render 'icon', icon: 'cart', width: 20, height: 20 %}
+{%- endcomment -%}
+{%- liquid
+  assign w = width | default: 20
+  assign h = height | default: 20
+-%}
+{%- case icon -%}
+  {%- when 'cart' -%}
+    <svg width="{{ w }}" height="{{ h }}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true" focusable="false">
+      <path d="M3 4h2l2.2 11.4a2 2 0 0 0 2 1.6h7.6a2 2 0 0 0 2-1.6L20.5 8H6.2" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="9" cy="20.5" r="1.4" fill="currentColor" stroke="none"/>
+      <circle cx="17" cy="20.5" r="1.4" fill="currentColor" stroke="none"/>
+    </svg>
+  {%- when 'search' -%}
+    <svg width="{{ w }}" height="{{ h }}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true" focusable="false">
+      <circle cx="10.5" cy="10.5" r="6.5"/>
+      <path d="M20 20l-4.6-4.6" stroke-linecap="round"/>
+    </svg>
+  {%- when 'account' -%}
+    <svg width="{{ w }}" height="{{ h }}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true" focusable="false">
+      <circle cx="12" cy="8" r="3.6"/>
+      <path d="M4.5 20c1.3-3.6 4.2-5.4 7.5-5.4s6.2 1.8 7.5 5.4" stroke-linecap="round"/>
+    </svg>
+  {%- when 'menu' -%}
+    <svg width="{{ w }}" height="{{ h }}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true" focusable="false">
+      <path d="M3 6h18M3 12h18M3 18h18" stroke-linecap="round"/>
+    </svg>
+  {%- when 'close' -%}
+    <svg width="{{ w }}" height="{{ h }}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true" focusable="false">
+      <path d="M5 5l14 14M19 5L5 19" stroke-linecap="round"/>
+    </svg>
+  {%- when 'chevron-down' -%}
+    <svg width="{{ w }}" height="{{ h }}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true" focusable="false">
+      <path d="M6 9l6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  {%- when 'chevron-right' -%}
+    <svg width="{{ w }}" height="{{ h }}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true" focusable="false">
+      <path d="M9 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  {%- when 'plus' -%}
+    <svg width="{{ w }}" height="{{ h }}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true" focusable="false">
+      <path d="M12 5v14M5 12h14" stroke-linecap="round"/>
+    </svg>
+  {%- when 'minus' -%}
+    <svg width="{{ w }}" height="{{ h }}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true" focusable="false">
+      <path d="M5 12h14" stroke-linecap="round"/>
+    </svg>
+  {%- when 'check' -%}
+    <svg width="{{ w }}" height="{{ h }}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" focusable="false">
+      <path d="M4 12l5 5L20 6" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+{%- endcase -%}

@@ -1,0 +1,20 @@
+<div class="page-width not-found section-padding" style="text-align: center;">
+  <p class="eyebrow">404</p>
+  <h1 class="h1">{{ section.settings.heading | default: 'Wrong turn.' }}</h1>
+  <p class="not-found__text">{{ section.settings.text | default: "The page you're looking for doesn't exist." }}</p>
+  <a href="{{ routes.root_url }}" class="btn btn--primary">{{ 'general.back_to_home' | t }}</a>
+</div>
+
+{% stylesheet %}
+.not-found__text { margin: 16px 0 28px; color: var(--color-ink-secondary); }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "404 page",
+  "settings": [
+    { "type": "text", "id": "heading", "label": "Heading", "default": "Wrong turn." },
+    { "type": "text", "id": "text", "label": "Text", "default": "The page you're looking for doesn't exist." }
+  ]
+}
+{% endschema %}

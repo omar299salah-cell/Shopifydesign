@@ -1,0 +1,171 @@
+<footer class="site-footer dark-surface section-padding">
+  <div class="page-width">
+
+    {%- if section.settings.show_newsletter -%}
+      <div class="site-footer__newsletter">
+        <p class="eyebrow">{{ section.settings.newsletter_eyebrow | default: 'Stay in it' }}</p>
+        <h2 class="h3">{{ section.settings.newsletter_heading | default: 'Get early access to drops and training content.' }}</h2>
+        {% render 'newsletter-form', id: 'Footer' %}
+      </div>
+    {%- endif -%}
+
+    <div class="site-footer__grid">
+      <div class="site-footer__brand">
+        <a href="{{ routes.root_url }}" class="site-header__logo-text">{{ shop.name }}</a>
+        {%- if section.settings.brand_text != blank -%}
+          <p class="site-footer__brand-text">{{ section.settings.brand_text }}</p>
+        {%- endif -%}
+        <div class="site-footer__social">
+          {%- if settings.social_instagram != blank -%}<a href="{{ settings.social_instagram }}">Instagram</a>{%- endif -%}
+          {%- if settings.social_tiktok != blank -%}<a href="{{ settings.social_tiktok }}">TikTok</a>{%- endif -%}
+          {%- if settings.social_youtube != blank -%}<a href="{{ settings.social_youtube }}">YouTube</a>{%- endif -%}
+          {%- if settings.social_x != blank -%}<a href="{{ settings.social_x }}">X</a>{%- endif -%}
+        </div>
+      </div>
+
+      {%- for block in section.blocks -%}
+        {%- if block.type == 'link_list' -%}
+          <div class="site-footer__col" {{ block.shopify_attributes }}>
+            <h3 class="site-footer__col-title">{{ block.settings.title }}</h3>
+            <ul role="list">
+              {%- for link in block.settings.menu.links -%}
+                <li><a href="{{ link.url }}">{{ link.title }}</a></li>
+              {%- endfor -%}
+            </ul>
+          </div>
+        {%- endif -%}
+      {%- endfor -%}
+    </div>
+
+    <div class="site-footer__bottom">
+      <p>&copy; {{ 'now' | date: '%Y' }} {{ shop.name }}. All rights reserved.</p>
+      <p class="site-footer__payment-note">{{ section.settings.bottom_text | default: 'Prices in ' | append: shop.currency }}</p>
+    </div>
+  </div>
+</footer>
+
+{% stylesheet %}
+.site-footer__newsletter {
+  padding-bottom: 40px;
+  margin-bottom: 40px;
+  border-bottom: 1px solid var(--color-dark-border);
+  max-width: 520px;
+}
+.site-footer__newsletter .h3 { margin: 8px 0 20px; }
+
+.site-footer__grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 32px;
+}
+
+.site-footer__brand-text {
+  margin: 12px 0 16px;
+  color: var(--color-dark-ink-secondary);
+  max-width: 320px;
+  font-size: 0.9375rem;
+}
+
+.site-footer__social {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.site-footer__social a {
+  font-size: 0.8125rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-dark-ink-secondary);
+}
+.site-footer__social a:hover { color: var(--color-accent); }
+
+.site-footer__col-title {
+  font-family: var(--font-heading);
+  text-transform: uppercase;
+  font-size: 0.8125rem;
+  letter-spacing: 0.06em;
+  margin-bottom: 16px;
+}
+.site-footer__col ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.site-footer__col a { color: var(--color-dark-ink-secondary); font-size: 0.9375rem; }
+.site-footer__col a:hover { color: var(--color-accent); }
+
+.site-footer__bottom {
+  margin-top: 48px;
+  padding-top: 24px;
+  border-top: 1px solid var(--color-dark-border);
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  color: var(--color-dark-ink-secondary);
+  font-size: 0.8125rem;
+}
+
+@media (min-width: 700px) {
+  .site-footer__grid { grid-template-columns: 1.4fr repeat(3, 1fr); }
+}
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Footer",
+  "settings": [
+    {
+      "type": "richtext",
+      "id": "brand_text",
+      "label": "Brand statement",
+      "default": "<p>Performance running and training footwear built for those going beyond their last personal best.</p>"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_newsletter",
+      "label": "Show newsletter signup",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "newsletter_eyebrow",
+      "label": "Newsletter eyebrow",
+      "default": "Stay in it"
+    },
+    {
+      "type": "text",
+      "id": "newsletter_heading",
+      "label": "Newsletter heading",
+      "default": "Get early access to drops and training content."
+    },
+    {
+      "type": "text",
+      "id": "bottom_text",
+      "label": "Bottom text"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "link_list",
+      "name": "Link column",
+      "settings": [
+        {
+          "type": "text",
+          "id": "title",
+          "label": "Column title",
+          "default": "Shop"
+        },
+        {
+          "type": "link_list",
+          "id": "menu",
+          "label": "Menu"
+        }
+      ]
+    }
+  ],
+  "default": {
+    "blocks": [
+      { "type": "link_list", "settings": { "title": "Shop" } },
+      { "type": "link_list", "settings": { "title": "Support" } },
+      { "type": "link_list", "settings": { "title": "Company" } }
+    ]
+  }
+}
+{% endschema %}

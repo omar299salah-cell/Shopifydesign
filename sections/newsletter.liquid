@@ -1,0 +1,29 @@
+<section class="newsletter-section dark-surface section-padding">
+  <div class="page-width newsletter-section__inner">
+    <p class="eyebrow">{{ section.settings.eyebrow | default: 'Join the team' }}</p>
+    <h2 class="h2">{{ section.settings.heading | default: 'Training tips, early drops, no noise.' }}</h2>
+    <div class="newsletter-section__form">
+      {% render 'newsletter-form', id: 'Homepage' %}
+    </div>
+  </div>
+</section>
+
+{% stylesheet %}
+.newsletter-section__inner { text-align: center; display: flex; flex-direction: column; align-items: center; }
+.newsletter-section__inner .h2 { margin: 8px 0 28px; max-width: 640px; }
+.newsletter-section__form { width: 100%; display: flex; justify-content: center; }
+.newsletter-section__form .newsletter-form__row { justify-content: center; }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Newsletter",
+  "settings": [
+    { "type": "text", "id": "eyebrow", "label": "Eyebrow", "default": "Join the team" },
+    { "type": "text", "id": "heading", "label": "Heading", "default": "Training tips, early drops, no noise." }
+  ],
+  "presets": [
+    { "name": "Newsletter" }
+  ]
+}
+{% endschema %}

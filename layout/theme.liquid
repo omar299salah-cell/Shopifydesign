@@ -1,0 +1,93 @@
+<!doctype html>
+<html class="no-js" lang="{{ request.locale.iso_code }}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="{{ settings.color_dark_surface }}">
+  <link rel="canonical" href="{{ canonical_url }}">
+
+  {%- if settings.favicon -%}
+    <link rel="icon" type="image/png" href="{{ settings.favicon | image_url: width: 64 }}">
+  {%- endif -%}
+
+  {%- unless page_title contains shop.name -%}
+    <title>{{ page_title }}{% if current_tags %} &ndash; tagged "{{ current_tags | join: ', ' }}"{% endif %}{% if current_page != 1 %} &ndash; Page {{ current_page }}{% endif %}{% unless page_title contains shop.name %} &ndash; {{ shop.name }}{% endunless %}</title>
+  {%- else -%}
+    <title>{{ page_title }}</title>
+  {%- endunless -%}
+
+  {%- if page_description -%}
+    <meta name="description" content="{{ page_description | escape }}">
+  {%- endif -%}
+
+  {{ content_for_header }}
+
+  {{ 'base.css' | asset_url | stylesheet_tag }}
+
+  {%- style -%}
+    :root {
+      --color-bg: {{ settings.color_background }};
+      --color-bg-alt: {{ settings.color_background_alt }};
+      --color-ink: {{ settings.color_ink }};
+      --color-ink-secondary: {{ settings.color_ink_secondary }};
+      --color-border: {{ settings.color_border }};
+      --color-accent: {{ settings.color_accent }};
+      --color-accent-ink: {{ settings.color_accent_ink }};
+      --color-accent-on-dark: {{ settings.color_accent_on_dark }};
+      --color-dark-surface: {{ settings.color_dark_surface }};
+      --color-dark-ink: {{ settings.color_dark_ink }};
+      --color-dark-ink-secondary: {{ settings.color_dark_ink_secondary }};
+      --color-dark-border: {{ settings.color_dark_border }};
+      --heading-letter-spacing: {{ settings.heading_letter_spacing }}px;
+      --page-width: {{ settings.page_width }}px;
+      --grid-gutter: {{ settings.grid_spacing }}px;
+      --font-heading: {{ settings.type_heading_font.family }}, {{ settings.type_heading_font.fallback_families }};
+      --font-heading-weight: {{ settings.type_heading_font.weight }};
+      --font-body: {{ settings.type_body_font.family }}, {{ settings.type_body_font.fallback_families }};
+      --font-body-weight: {{ settings.type_body_font.weight }};
+    }
+    h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4 {
+      font-weight: var(--font-heading-weight);
+    }
+    body {
+      font-weight: var(--font-body-weight);
+    }
+  {%- endstyle -%}
+
+  {{ settings.type_heading_font | font_face: font_display: 'swap' }}
+  {{ settings.type_body_font | font_face: font_display: 'swap' }}
+
+  <script>
+    window.themeRoutes = {
+      cartUrl: {{ routes.cart_url | json }},
+      cartAddUrl: {{ routes.cart_add_url | json }},
+      cartChangeUrl: {{ routes.cart_change_url | json }}
+    };
+    window.themeStrings = {
+      addToCart: {{ 'products.product.add_to_cart' | t | json }},
+      soldOut: {{ 'products.product.sold_out' | t | json }}
+    };
+  </script>
+  <script src="{{ 'global.js' | asset_url }}" defer="defer"></script>
+</head>
+
+<body class="template-{{ request.page_type }}" data-template="{{ request.page_type }}">
+  <a class="skip-to-content-link visually-hidden" href="#MainContent">
+    {{ 'accessibility.skip_to_content' | t }}
+  </a>
+
+  {% section 'header' %}
+
+  <main id="MainContent" tabindex="-1">
+    {{ content_for_layout }}
+  </main>
+
+  {% section 'footer' %}
+
+  {% if settings.cart_type == 'drawer' %}
+    {% section 'cart-drawer' %}
+  {% endif %}
+
+  {% render 'size-guide-modal' %}
+</body>
+</html>

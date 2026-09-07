@@ -1,0 +1,242 @@
+[
+  {
+    "name": "theme_info",
+    "theme_name": "Beyond",
+    "theme_version": "1.0.0",
+    "theme_author": "Beyond",
+    "theme_documentation_url": "",
+    "theme_support_url": ""
+  },
+  {
+    "name": "Logo",
+    "settings": [
+      {
+        "type": "image_picker",
+        "id": "logo",
+        "label": "Logo image"
+      },
+      {
+        "type": "range",
+        "id": "logo_width",
+        "min": 80,
+        "max": 260,
+        "step": 10,
+        "unit": "px",
+        "label": "Logo width",
+        "default": 140
+      },
+      {
+        "type": "image_picker",
+        "id": "favicon",
+        "label": "Favicon",
+        "info": "64 x 64px .png recommended"
+      }
+    ]
+  },
+  {
+    "name": "Colors",
+    "settings": [
+      {
+        "type": "header",
+        "content": "Base palette"
+      },
+      {
+        "type": "color",
+        "id": "color_background",
+        "label": "Background",
+        "default": "#F5F3EE"
+      },
+      {
+        "type": "color",
+        "id": "color_background_alt",
+        "label": "Background (alt / cards)",
+        "default": "#FFFFFF"
+      },
+      {
+        "type": "color",
+        "id": "color_ink",
+        "label": "Text",
+        "default": "#0A0A0A"
+      },
+      {
+        "type": "color",
+        "id": "color_ink_secondary",
+        "label": "Secondary text",
+        "default": "#5C5A54"
+      },
+      {
+        "type": "color",
+        "id": "color_border",
+        "label": "Borders",
+        "default": "#E1DED4"
+      },
+      {
+        "type": "header",
+        "content": "Accent"
+      },
+      {
+        "type": "color",
+        "id": "color_accent",
+        "label": "Accent",
+        "info": "Used for buttons, badges and sale prices. Kept dark enough for WCAG AA text contrast.",
+        "default": "#CC2E00"
+      },
+      {
+        "type": "color",
+        "id": "color_accent_ink",
+        "label": "Text on accent",
+        "default": "#FFFFFF"
+      },
+      {
+        "type": "color",
+        "id": "color_accent_on_dark",
+        "label": "Accent text on dark surfaces",
+        "info": "A brighter tint used only for accent-colored text on the dark header/footer, for contrast.",
+        "default": "#FF6B47"
+      },
+      {
+        "type": "header",
+        "content": "Dark shell (header, footer, hero)"
+      },
+      {
+        "type": "color",
+        "id": "color_dark_surface",
+        "label": "Dark surface",
+        "default": "#0A0A0A"
+      },
+      {
+        "type": "color",
+        "id": "color_dark_ink",
+        "label": "Text on dark surface",
+        "default": "#F5F3EE"
+      },
+      {
+        "type": "color",
+        "id": "color_dark_ink_secondary",
+        "label": "Secondary text on dark surface",
+        "default": "#9A968C"
+      },
+      {
+        "type": "color",
+        "id": "color_dark_border",
+        "label": "Borders on dark surface",
+        "default": "#262624"
+      }
+    ]
+  },
+  {
+    "name": "Typography",
+    "settings": [
+      {
+        "type": "header",
+        "content": "Headings"
+      },
+      {
+        "type": "font_picker",
+        "id": "type_heading_font",
+        "label": "Heading font",
+        "default": "archivo_n7"
+      },
+      {
+        "type": "range",
+        "id": "heading_letter_spacing",
+        "min": -2,
+        "max": 2,
+        "step": 0.5,
+        "unit": "px",
+        "label": "Heading letter spacing",
+        "default": -0.5
+      },
+      {
+        "type": "header",
+        "content": "Body"
+      },
+      {
+        "type": "font_picker",
+        "id": "type_body_font",
+        "label": "Body font",
+        "default": "inter_n4"
+      }
+    ]
+  },
+  {
+    "name": "Layout",
+    "settings": [
+      {
+        "type": "range",
+        "id": "page_width",
+        "min": 1200,
+        "max": 1600,
+        "step": 20,
+        "unit": "px",
+        "label": "Max page width",
+        "default": 1440
+      },
+      {
+        "type": "range",
+        "id": "grid_spacing",
+        "min": 4,
+        "max": 24,
+        "step": 2,
+        "unit": "px",
+        "label": "Grid gutters",
+        "default": 12
+      }
+    ]
+  },
+  {
+    "name": "Product cards",
+    "settings": [
+      {
+        "type": "select",
+        "id": "card_image_ratio",
+        "label": "Image ratio",
+        "options": [
+          { "value": "portrait", "label": "Portrait" },
+          { "value": "square", "label": "Square" }
+        ],
+        "default": "square"
+      },
+      {
+        "type": "checkbox",
+        "id": "show_quick_add",
+        "label": "Enable quick add to cart",
+        "default": true
+      }
+    ]
+  },
+  {
+    "name": "Cart",
+    "settings": [
+      {
+        "type": "select",
+        "id": "cart_type",
+        "label": "Cart behavior",
+        "options": [
+          { "value": "drawer", "label": "Drawer" },
+          { "value": "page", "label": "Page" }
+        ],
+        "default": "drawer"
+      },
+      {
+        "type": "checkbox",
+        "id": "cart_show_shipping_note",
+        "label": "Show shipping/returns note in cart",
+        "default": true
+      }
+    ]
+  },
+  {
+    "name": "Social media",
+    "settings": [
+      {
+        "type": "header",
+        "content": "Accounts"
+      },
+      { "type": "text", "id": "social_instagram", "label": "Instagram URL" },
+      { "type": "text", "id": "social_tiktok", "label": "TikTok URL" },
+      { "type": "text", "id": "social_youtube", "label": "YouTube URL" },
+      { "type": "text", "id": "social_x", "label": "X (Twitter) URL" }
+    ]
+  }
+]

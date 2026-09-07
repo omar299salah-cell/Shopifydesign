@@ -1,0 +1,73 @@
+{%- comment -%} Usage: {% render 'product-card', product: product %} {%- endcomment -%}
+{%- liquid
+  assign ratio_class = settings.card_image_ratio | default: 'square'
+  assign secondary_image = product.images[1]
+-%}
+<div class="product-card">
+  <a href="{{ product.url }}" class="product-card__media product-card__media--{{ ratio_class }}">
+    {%- if product.featured_image -%}
+      <img
+        class="product-card__image product-card__image--primary"
+        src="{{ product.featured_image | image_url: width: 700 }}"
+        srcset="{{ product.featured_image | image_url: width: 400 }} 400w, {{ product.featured_image | image_url: width: 700 }} 700w"
+        sizes="(min-width: 750px) 25vw, 50vw"
+        alt="{{ product.featured_image.alt | escape }}"
+        loading="lazy"
+        width="{{ product.featured_image.width }}"
+        height="{{ product.featured_image.height }}"
+      >
+    {%- else -%}
+      <div class="product-card__placeholder">[PLACEHOLDER]</div>
+    {%- endif -%}
+    {%- if secondary_image -%}
+      <img
+        class="product-card__image product-card__image--secondary"
+        src="{{ secondary_image | image_url: width: 700 }}"
+        alt=""
+        loading="lazy"
+        aria-hidden="true"
+      >
+    {%- endif -%}
+
+    <div class="product-card__badges">
+      {%- if product.compare_at_price > product.price -%}
+        <span class="badge badge--sale">{{ 'products.product.on_sale' | t }}</span>
+      {%- endif -%}
+      {%- unless product.available -%}
+        <span class="badge badge--sold-out">{{ 'products.product.sold_out' | t }}</span>
+      {%- endunless -%}
+    </div>
+  </a>
+
+  <div class="product-card__info">
+    <a href="{{ product.url }}" class="product-card__title-link">
+      <h3 class="product-card__title">{{ product.title }}</h3>
+    </a>
+    <p class="product-card__price">
+      {%- if product.compare_at_price > product.price -%}
+        <span class="product-card__price-sale">{{ product.price | money }}</span>
+        <span class="product-card__price-compare">{{ product.compare_at_price | money }}</span>
+      {%- else -%}
+        <span>{{ product.price | money }}</span>
+      {%- endif -%}
+    </p>
+
+    {%- if settings.show_quick_add and product.available -%}
+      <div class="product-card__quick-add" data-quick-add>
+        <button type="button" class="btn btn--outline btn--full" data-quick-add-toggle aria-expanded="false">
+          {{ 'products.product.quick_add' | t }}
+        </button>
+        <div class="product-card__quick-add-sizes" data-quick-add-sizes hidden>
+          {%- for variant in product.variants -%}
+            <button
+              type="button"
+              class="quick-add-size-btn"
+              data-quick-add-variant="{{ variant.id }}"
+              {% unless variant.available %}disabled{% endunless %}
+            >{{ variant.title }}</button>
+          {%- endfor -%}
+        </div>
+      </div>
+    {%- endif -%}
+  </div>
+</div>

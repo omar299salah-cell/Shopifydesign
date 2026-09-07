@@ -1,0 +1,83 @@
+{
+  "general": {
+    "search": {
+      "search": "Search",
+      "placeholder": "Search products",
+      "no_results": "No results found for \"{{ terms }}\"",
+      "results_count": {
+        "one": "{{ count }} result for \"{{ terms }}\"",
+        "other": "{{ count }} results for \"{{ terms }}\""
+      }
+    },
+    "newsletter": {
+      "email_placeholder": "Your email",
+      "submit": "Sign up",
+      "success": "Thanks for signing up.",
+      "error": "Please enter a valid email address."
+    },
+    "continue_shopping": "Continue shopping",
+    "back_to_home": "Back to homepage"
+  },
+  "accessibility": {
+    "skip_to_content": "Skip to content",
+    "close": "Close",
+    "menu": "Menu",
+    "cart": "Cart",
+    "search": "Search"
+  },
+  "header": {
+    "menu": "Menu"
+  },
+  "products": {
+    "product": {
+      "sold_out": "Sold out",
+      "on_sale": "Sale",
+      "quantity": "Quantity",
+      "add_to_cart": "Add to cart",
+      "unavailable": "Unavailable",
+      "size": "Size",
+      "size_guide": "Size guide",
+      "select_size": "Select a size",
+      "specs": "Specs",
+      "weight": "Weight",
+      "drop": "Drop",
+      "cushioning": "Cushioning",
+      "terrain": "Terrain",
+      "description": "Description",
+      "shipping_returns": "Shipping & returns",
+      "view_full_details": "View full details",
+      "quick_add": "Quick add"
+    }
+  },
+  "collections": {
+    "general": {
+      "no_matches": "No products match those filters.",
+      "clear_filters": "Clear all",
+      "filter_and_sort": "Filter and sort",
+      "filters": "Filters",
+      "sort_by": "Sort by",
+      "items_count": {
+        "one": "{{ count }} product",
+        "other": "{{ count }} products"
+      },
+      "reset": "Reset"
+    }
+  },
+  "cart": {
+    "general": {
+      "title": "Your cart",
+      "empty": "Your cart is empty.",
+      "subtotal": "Subtotal",
+      "checkout": "Checkout",
+      "remove": "Remove",
+      "shipping_note": "Shipping and taxes calculated at checkout.",
+      "view_cart": "View cart",
+      "update": "Update",
+      "free_shipping_note": "Free shipping on orders over {{ amount }}."
+    }
+  },
+  "onboarding": {
+    "product_title": "Sample product",
+    "collection_title": "Sample collection"
+  }
+}

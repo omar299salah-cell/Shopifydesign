@@ -1,0 +1,42 @@
+{%- comment -%}
+  Renders the technical spec grid from product metafields.
+  Requires metafield definitions (namespace: custom) set up in Admin > Settings > Custom data > Products:
+  weight (single line text), drop (single line text), cushioning (single line text), terrain (single line text or list).
+{%- endcomment -%}
+{%- liquid
+  assign has_specs = false
+  if product.metafields.custom.weight != blank or product.metafields.custom.drop != blank or product.metafields.custom.cushioning != blank or product.metafields.custom.terrain != blank
+    assign has_specs = true
+  endif
+-%}
+{%- if has_specs -%}
+  <div class="spec-block">
+    <h3 class="spec-block__title">{{ 'products.product.specs' | t }}</h3>
+    <dl class="spec-block__grid">
+      {%- if product.metafields.custom.weight != blank -%}
+        <div class="spec-block__item">
+          <dt>{{ 'products.product.weight' | t }}</dt>
+          <dd>{{ product.metafields.custom.weight }}</dd>
+        </div>
+      {%- endif -%}
+      {%- if product.metafields.custom.drop != blank -%}
+        <div class="spec-block__item">
+          <dt>{{ 'products.product.drop' | t }}</dt>
+          <dd>{{ product.metafields.custom.drop }}</dd>
+        </div>
+      {%- endif -%}
+      {%- if product.metafields.custom.cushioning != blank -%}
+        <div class="spec-block__item">
+          <dt>{{ 'products.product.cushioning' | t }}</dt>
+          <dd>{{ product.metafields.custom.cushioning }}</dd>
+        </div>
+      {%- endif -%}
+      {%- if product.metafields.custom.terrain != blank -%}
+        <div class="spec-block__item">
+          <dt>{{ 'products.product.terrain' | t }}</dt>
+          <dd>{{ product.metafields.custom.terrain }}</dd>
+        </div>
+      {%- endif -%}
+    </dl>
+  </div>
+{%- endif -%}

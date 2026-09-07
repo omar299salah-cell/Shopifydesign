@@ -1,0 +1,12 @@
+{
+  "sections": {
+    "main": {
+      "type": "contact-form",
+      "settings": {
+        "heading": "Contact us",
+        "subheading": "Questions about sizing, orders, or anything else — we're here to help."
+      }
+    }
+  },
+  "order": ["main"]
+}

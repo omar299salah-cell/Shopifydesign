@@ -1,0 +1,59 @@
+<div class="page-width search-page section-padding" style="padding-top: 32px;">
+  <div class="simple-page__header">
+    <form action="{{ routes.search_url }}" method="get" role="search" class="search-page__form">
+      <input type="hidden" name="type" value="product">
+      <input
+        type="search"
+        name="q"
+        value="{{ search.terms | escape }}"
+        placeholder="{{ 'general.search.placeholder' | t }}"
+        class="field-input"
+        aria-label="{{ 'general.search.search' | t }}"
+      >
+      <button type="submit" class="btn btn--accent">{{ 'general.search.search' | t }}</button>
+    </form>
+
+    {%- if search.performed -%}
+      <p class="search-page__count">
+        {%- if search.results_count > 0 -%}
+          {{ 'general.search.results_count' | t: count: search.results_count, terms: search.terms }}
+        {%- else -%}
+          {{ 'general.search.no_results' | t: terms: search.terms }}
+        {%- endif -%}
+      </p>
+    {%- endif -%}
+  </div>
+
+  {%- if search.performed and search.results_count > 0 -%}
+    {%- paginate search.results by 24 -%}
+      <div class="grid product-grid">
+        {%- for item in search.results -%}
+          <div class="product-grid__item">
+            {%- if item.object_type == 'product' -%}
+              {% render 'product-card', product: item %}
+            {%- else -%}
+              <a href="{{ item.url }}" class="search-page__page-result">
+                <p class="eyebrow">{{ item.object_type | capitalize }}</p>
+                <h3 class="h4">{{ item.title }}</h3>
+              </a>
+            {%- endif -%}
+          </div>
+        {%- endfor -%}
+      </div>
+      {% render 'pagination', paginate: paginate %}
+    {%- endpaginate -%}
+  {%- endif -%}
+</div>
+
+{% stylesheet %}
+.search-page__form { display: flex; gap: 8px; max-width: 480px; margin-bottom: 16px; }
+.search-page__count { color: var(--color-ink-secondary); font-size: 0.9375rem; }
+.search-page__page-result { display: block; padding: 20px; border: 1px solid var(--color-border); border-radius: var(--radius-md); }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Search results",
+  "settings": []
+}
+{% endschema %}

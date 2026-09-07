@@ -1,0 +1,28 @@
+<div class="collection-banner dark-surface">
+  <div class="page-width collection-banner__inner">
+    <p class="eyebrow">{{ 'collections.general.items_count' | t: count: collection.products_count }}</p>
+    <h1 class="h1 collection-banner__title">{{ collection.title }}</h1>
+    {%- if section.settings.show_description and collection.description != blank -%}
+      <div class="collection-banner__description">{{ collection.description }}</div>
+    {%- endif -%}
+  </div>
+</div>
+
+{% stylesheet %}
+.collection-banner__inner { padding-top: 56px; padding-bottom: 56px; }
+.collection-banner__title { font-size: clamp(2.25rem, 5vw, 3.5rem); margin-top: 8px; }
+.collection-banner__description {
+  margin-top: 16px;
+  max-width: 640px;
+  color: var(--color-dark-ink-secondary);
+}
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Collection banner",
+  "settings": [
+    { "type": "checkbox", "id": "show_description", "label": "Show collection description", "default": true }
+  ]
+}
+{% endschema %}
