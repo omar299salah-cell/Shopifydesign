@@ -395,9 +395,13 @@ const SHEET_GIDS = {
   complaints: "2138035729",
   lists:      "1731078066",
 };
+/* The plain /export endpoint works for direct navigation/download but
+   doesn't send Access-Control-Allow-Origin, so a page's fetch() to it
+   gets blocked by CORS. The gviz query endpoint is built for exactly
+   this (client-side embedding) and does send that header. */
 const SHEET_URLS = Object.fromEntries(
   Object.entries(SHEET_GIDS).map(([tab, gid]) =>
-    [tab, `https://docs.google.com/spreadsheets/d/${SHEET_DOC_ID}/export?format=csv&gid=${gid}`])
+    [tab, `https://docs.google.com/spreadsheets/d/${SHEET_DOC_ID}/gviz/tq?tqx=out:csv&gid=${gid}`])
 );
 
 /* ============================================================
