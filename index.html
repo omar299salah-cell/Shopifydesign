@@ -381,17 +381,24 @@ footer{margin:50px 0 30px;font-size:12px;color:var(--text-secondary);border-top:
 
 <script>
 /* ============================================================
-   SHEET SOURCES — swap these for your published CSV links.
-   Publish each tab individually: File → Share → Publish to web
-   → pick the single tab → Comma-separated values (.csv) → Publish.
+   SHEET SOURCES — Factory Twenty One sales sheet.
+   Doc: 1LuRvvV_mfApNKtbu9wnTmmjWtJOJBmsUSI_OYOHM3yE
+   Requires Share → General access → "Anyone with the link" → Viewer,
+   otherwise these export URLs only work for someone logged into an
+   account that has access.
    ============================================================ */
-const SHEET_URLS = {
-  crm:        "PASTE_CRM_CSV_URL",
-  outreach:   "PASTE_OUTREACH_CSV_URL",
-  feedback:   "PASTE_CLIENT_FEEDBACK_CSV_URL",
-  complaints: "PASTE_CLIENT_COMPLAINTS_CSV_URL",
-  lists:      "PASTE_LISTS_CSV_URL",
+const SHEET_DOC_ID = "1LuRvvV_mfApNKtbu9wnTmmjWtJOJBmsUSI_OYOHM3yE";
+const SHEET_GIDS = {
+  crm:        "1971600686",
+  outreach:   "2104827155",
+  feedback:   "1203678473",
+  complaints: "2138035729",
+  lists:      "1731078066",
 };
+const SHEET_URLS = Object.fromEntries(
+  Object.entries(SHEET_GIDS).map(([tab, gid]) =>
+    [tab, `https://docs.google.com/spreadsheets/d/${SHEET_DOC_ID}/export?format=csv&gid=${gid}`])
+);
 
 /* ============================================================
    CONSTANTS — brand + business rules
