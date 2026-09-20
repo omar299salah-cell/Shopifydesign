@@ -1,0 +1,1465 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>F21 Sales Dashboard</title>
+<meta name="description" content="Factory Twenty One — live sales operation dashboard">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;800;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js" defer></script>
+<style>
+/* ============================================================
+   FACTORY TWENTY ONE — design tokens
+   ============================================================ */
+:root{
+  --orange:#FF5C01;
+  --black:#000000;
+  --near-black:#111111;
+  --white:#FFFFFF;
+  --grey-100:#F4F4F4;
+  --grey-300:#D9D9D9;
+  --grey-600:#6E6E6E;
+
+  --bg:var(--white);
+  --surface:#FFFFFF;
+  --surface-2:var(--grey-100);
+  --text:var(--near-black);
+  --text-secondary:var(--grey-600);
+  --border:var(--grey-300);
+  --masthead-bg:var(--near-black);
+  --masthead-text:var(--white);
+  --amber-bg:#FFF3CD;
+  --amber-text:#7A5B00;
+  --red-bg:#FCE1E1;
+  --red-text:#8A1F1F;
+  --good-bg:#D9EAD3;
+  --good-text:#274E13;
+  --shadow:0 1px 2px rgba(0,0,0,.06);
+  --radius:2px;
+  --font-head:'Archivo',"Arial Narrow",sans-serif;
+  --font-body:'Inter',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0B0B0B;
+    --surface:#161616;
+    --surface-2:#1E1E1E;
+    --text:#F4F4F4;
+    --text-secondary:#ABABAB;
+    --border:#2E2E2E;
+    --masthead-bg:#000000;
+    --masthead-text:#FFFFFF;
+    --amber-bg:#3A2E00;
+    --amber-text:#FFD873;
+    --red-bg:#3A1414;
+    --red-text:#FF9B9B;
+    --good-bg:#1E3314;
+    --good-text:#9FE18B;
+  }
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{
+  background:var(--bg);
+  color:var(--text);
+  font-family:var(--font-body);
+  font-size:15px;
+  line-height:1.45;
+  -webkit-font-smoothing:antialiased;
+  overflow-x:hidden;
+}
+h1,h2,h3,h4{font-family:var(--font-head);margin:0;}
+a{color:inherit;}
+button{font-family:var(--font-body);cursor:pointer;}
+table{border-collapse:collapse;width:100%;}
+.container{max-width:1400px;margin:0 auto;padding:0 20px;}
+@media (max-width:600px){.container{padding:0 16px;}}
+
+/* ---------- masthead ---------- */
+.masthead{
+  background:var(--masthead-bg);
+  color:var(--masthead-text);
+  padding:22px 0;
+  border-bottom:4px solid var(--orange);
+}
+.masthead-inner{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:16px;}
+.wordmark-title{
+  font-size:clamp(22px,4vw,34px);
+  font-weight:900;
+  letter-spacing:.5px;
+  text-transform:uppercase;
+}
+.wordmark-title span{color:var(--orange);}
+.wordmark-tagline{font-size:13px;color:#D9D9D9;margin-top:4px;font-style:italic;}
+.wordmark-location{font-size:11px;color:#8A8A8A;text-transform:uppercase;letter-spacing:1.5px;margin-top:2px;}
+.masthead-actions{display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
+.btn{
+  background:var(--orange);color:var(--black);border:none;
+  padding:9px 16px;font-weight:700;font-size:12px;text-transform:uppercase;
+  letter-spacing:.06em;border-radius:var(--radius);
+}
+.btn:focus-visible,a:focus-visible,select:focus-visible,input:focus-visible,button:focus-visible{
+  outline:3px solid var(--orange);outline-offset:2px;
+}
+.btn.secondary{background:transparent;color:var(--white);border:1px solid #444;}
+.updated-stamp{font-size:12px;color:#B5B5B5;}
+.demo-flag{font-size:11px;background:var(--amber-bg);color:var(--amber-text);padding:3px 8px;border-radius:var(--radius);font-weight:700;text-transform:uppercase;letter-spacing:.05em;}
+
+/* ---------- filter bar ---------- */
+.filterbar{
+  position:sticky;top:0;z-index:20;
+  background:var(--surface);border-bottom:1px solid var(--border);
+  padding:10px 0;box-shadow:var(--shadow);
+}
+.filterbar-inner{display:flex;flex-wrap:wrap;gap:10px;align-items:center;}
+.filterbar label{font-size:11px;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:2px;}
+.filter-field{display:flex;flex-direction:column;min-width:120px;}
+.filter-field select,.filter-field input{
+  padding:6px 8px;border:1px solid var(--border);border-radius:var(--radius);
+  background:var(--bg);color:var(--text);font-size:13px;
+}
+.chips{display:flex;flex-wrap:wrap;gap:6px;align-items:center;}
+.chip{background:var(--surface-2);border:1px solid var(--border);border-radius:12px;padding:3px 10px;font-size:11px;display:flex;align-items:center;gap:6px;}
+.chip button{background:none;border:none;color:var(--text-secondary);font-weight:700;padding:0;font-size:13px;line-height:1;}
+
+/* ---------- status / error banner ---------- */
+#statusBanner{margin:14px 0;}
+.banner{padding:14px 16px;border-radius:var(--radius);font-size:14px;border:1px solid var(--border);}
+.banner.error{background:var(--red-bg);color:var(--red-text);border-color:transparent;}
+.banner.info{background:var(--surface-2);color:var(--text);}
+.banner ul{margin:8px 0 0;padding-left:18px;}
+
+/* ---------- section slabs ---------- */
+.panel{margin:34px 0;}
+.slab{
+  background:var(--near-black);color:var(--white);
+  display:flex;align-items:center;gap:10px;
+  padding:10px 16px;margin-bottom:16px;border-left:6px solid var(--orange);
+}
+.slab .num{font-family:var(--font-head);font-weight:900;color:var(--orange);font-size:15px;}
+.slab h2{font-size:16px;text-transform:uppercase;letter-spacing:.04em;font-weight:700;}
+.slab-sub{font-size:11px;color:#ABABAB;margin-left:auto;font-weight:400;text-transform:none;letter-spacing:0;}
+
+/* ---------- hero kpis ---------- */
+.hero-kpis{display:grid;grid-template-columns:repeat(6,1fr);gap:1px;background:var(--border);border:1px solid var(--border);margin-top:18px;}
+.hero-tile{background:var(--surface);padding:16px 14px;}
+.hero-tile .label{font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--text-secondary);}
+.hero-tile .value{font-family:var(--font-head);font-weight:900;font-size:clamp(20px,2.6vw,30px);color:var(--text);margin-top:4px;}
+.hero-tile .value.accent{color:var(--orange);}
+@media (max-width:900px){.hero-kpis{grid-template-columns:repeat(3,1fr);}}
+@media (max-width:520px){.hero-kpis{grid-template-columns:repeat(2,1fr);}}
+
+/* ---------- action rail ---------- */
+.action-rail{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:20px;}
+@media (max-width:860px){.action-rail{grid-template-columns:1fr;}}
+.rail-card{border:1px solid var(--border);background:var(--surface);min-width:0;}
+.rail-card h3{font-size:13px;padding:10px 14px;border-bottom:2px solid var(--orange);text-transform:uppercase;letter-spacing:.04em;}
+.rail-card .table-scroll{max-height:320px;overflow:auto;}
+
+/* ---------- generic tiles / cards ---------- */
+.grid{display:grid;gap:14px;min-width:0;}
+.grid > *{min-width:0;}
+.grid.cols-4{grid-template-columns:repeat(4,1fr);}
+.grid.cols-3{grid-template-columns:repeat(3,1fr);}
+@media (max-width:900px){.grid.cols-4,.grid.cols-3{grid-template-columns:repeat(2,1fr);}}
+@media (max-width:520px){.grid.cols-4,.grid.cols-3{grid-template-columns:1fr;}}
+
+.card{background:var(--surface);border:1px solid var(--border);padding:14px 16px;border-radius:var(--radius);}
+.card .kicker{font-size:10px;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.06em;}
+.card .big{font-family:var(--font-head);font-weight:900;font-size:26px;margin-top:4px;}
+.card .sub{font-size:12px;color:var(--text-secondary);margin-top:4px;}
+.card.flag-amber{background:var(--amber-bg);}
+.card.flag-amber .big,.card.flag-amber .kicker,.card.flag-amber .sub{color:var(--amber-text);}
+.card.flag-red{background:var(--red-bg);}
+.card.flag-red .big,.card.flag-red .kicker,.card.flag-red .sub{color:var(--red-text);}
+
+.cr-card .code{display:inline-block;background:var(--near-black);color:var(--orange);font-size:10px;font-weight:800;padding:2px 6px;border-radius:2px;margin-bottom:6px;}
+.cr-card .name{font-size:12.5px;font-weight:600;color:var(--text);}
+.cr-card .rate{font-family:var(--font-head);font-weight:900;font-size:28px;color:var(--orange);margin-top:6px;}
+.cr-card .frac{font-size:11.5px;color:var(--text-secondary);margin-top:2px;}
+
+/* ---------- tables ---------- */
+.table-scroll{overflow-x:auto;border:1px solid var(--border);min-width:0;}
+table.data{width:100%;min-width:560px;font-size:13px;}
+table.data th,table.data td{padding:8px 10px;border-bottom:1px solid var(--border);text-align:left;white-space:nowrap;}
+table.data thead th{background:var(--near-black);color:var(--white);position:sticky;top:0;cursor:pointer;user-select:none;font-size:11px;text-transform:uppercase;letter-spacing:.04em;}
+table.data thead th.sort-asc::after{content:" \25B2";color:var(--orange);}
+table.data thead th.sort-desc::after{content:" \25BC";color:var(--orange);}
+table.data tbody tr:nth-child(even){background:var(--surface-2);}
+table.data tfoot td{font-weight:700;background:var(--surface-2);border-top:2px solid var(--border);}
+.status-pill{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;white-space:nowrap;}
+.bar-cell{display:flex;align-items:center;gap:8px;min-width:180px;}
+.bar-cell .bar-track{flex:1;background:var(--surface-2);height:14px;border-radius:2px;overflow:hidden;min-width:80px;}
+.bar-cell .bar-fill{height:100%;}
+.bar-cell .bar-num{font-size:12px;min-width:34px;text-align:right;}
+
+/* ---------- funnel ---------- */
+.funnel-wrap{background:var(--surface);border:1px solid var(--border);padding:16px;}
+.funnel-svg{width:100%;height:auto;display:block;}
+.funnel-drop{font-size:11px;color:var(--text-secondary);text-align:center;}
+
+/* ---------- charts ---------- */
+.chart-box{position:relative;height:280px;background:var(--surface);border:1px solid var(--border);padding:12px;}
+
+/* ---------- misc ---------- */
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+.two-col > *{min-width:0;}
+@media (max-width:900px){.two-col{grid-template-columns:1fr;}}
+.section-note{font-size:12px;color:var(--text-secondary);margin-top:8px;}
+footer{margin:50px 0 30px;font-size:12px;color:var(--text-secondary);border-top:1px solid var(--border);padding-top:16px;}
+.hidden{display:none !important;}
+.loading-spinner{display:inline-block;width:14px;height:14px;border:2px solid var(--border);border-top-color:var(--orange);border-radius:50%;animation:spin .7s linear infinite;margin-right:8px;vertical-align:-2px;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.verify-panel{margin-top:24px;font-size:12px;border:1px dashed var(--orange);padding:12px;}
+.verify-panel table{font-size:12px;}
+.verify-pass{color:#2E7D32;font-weight:700;}
+.verify-fail{color:#C62828;font-weight:700;}
+
+@media print{
+  :root{--bg:#fff;--surface:#fff;--surface-2:#f4f4f4;--text:#111;--text-secondary:#444;--border:#ccc;--masthead-bg:#fff;--masthead-text:#111;}
+  .filterbar,.masthead-actions,#printBtn,.rail-card .table-scroll{overflow:visible;}
+  .filterbar{display:none;}
+  .panel{page-break-inside:avoid;margin:18px 0;}
+  body{overflow-x:visible;}
+  .chart-box{height:220px;}
+}
+</style>
+</head>
+<body>
+
+<header class="masthead">
+  <div class="container masthead-inner">
+    <div class="wordmark">
+      <div class="wordmark-title">FACTORY <span>TWENTY ONE</span></div>
+      <div class="wordmark-tagline">Your whole brand, manufactured.</div>
+      <div class="wordmark-location">Cairo — Sales Operation Dashboard</div>
+    </div>
+    <div class="masthead-actions">
+      <span class="demo-flag hidden" id="demoFlag">Demo data</span>
+      <span class="updated-stamp" id="updatedStamp">Not loaded yet</span>
+      <button class="btn secondary" id="printBtn" type="button">Print / PDF</button>
+      <button class="btn" id="refreshBtn" type="button">Refresh</button>
+    </div>
+  </div>
+</header>
+
+<div class="filterbar" id="filterbar">
+  <div class="container filterbar-inner">
+    <div class="filter-field">
+      <label for="fDateFrom">Date from</label>
+      <input type="date" id="fDateFrom">
+    </div>
+    <div class="filter-field">
+      <label for="fDateTo">Date to</label>
+      <input type="date" id="fDateTo">
+    </div>
+    <div class="filter-field">
+      <label for="fRep">Sales rep</label>
+      <select id="fRep"><option value="">All reps</option></select>
+    </div>
+    <div class="filter-field">
+      <label for="fSource">Source / platform</label>
+      <select id="fSource"><option value="">All sources</option></select>
+    </div>
+    <div class="filter-field">
+      <label for="fProduct">Product type</label>
+      <select id="fProduct"><option value="">All products</option></select>
+    </div>
+    <div class="filter-field" style="justify-content:flex-end;flex-direction:row;align-items:flex-end;">
+      <button class="btn secondary" id="resetFiltersBtn" type="button" style="border-color:var(--border);color:var(--text);">Reset</button>
+    </div>
+    <div class="chips" id="filterChips"></div>
+  </div>
+</div>
+
+<main class="container">
+  <div id="statusBanner"></div>
+
+  <section id="heroSection" class="hidden">
+    <div class="hero-kpis" id="heroKpis"></div>
+    <div class="action-rail">
+      <div class="rail-card">
+        <h3>Needs Chasing Today</h3>
+        <div class="table-scroll"><table class="data" id="chaseTable"></table></div>
+      </div>
+      <div class="rail-card">
+        <h3>Closest to Revenue</h3>
+        <div class="table-scroll"><table class="data" id="closestTable"></table></div>
+      </div>
+    </div>
+  </section>
+
+  <div id="dashboardBody" class="hidden">
+    <!-- 01 Pipeline Counter -->
+    <section class="panel">
+      <div class="slab"><span class="num">01 //</span><h2>Pipeline Counter</h2></div>
+      <div class="table-scroll"><div id="pipelineCounter"></div></div>
+    </section>
+
+    <!-- 02 Funnel -->
+    <section class="panel">
+      <div class="slab"><span class="num">02 //</span><h2>Funnel</h2><span class="slab-sub">Cumulative — reached(n)</span></div>
+      <div class="funnel-wrap"><div id="funnelChart"></div></div>
+    </section>
+
+    <!-- 03 Conversion Ratios -->
+    <section class="panel">
+      <div class="slab"><span class="num">03 //</span><h2>Conversion Ratios</h2></div>
+      <div class="grid cols-4" id="crCards"></div>
+    </section>
+
+    <!-- 04 Pipeline Health -->
+    <section class="panel">
+      <div class="slab"><span class="num">04 //</span><h2>Pipeline Health</h2></div>
+      <div class="grid cols-4" id="healthCards"></div>
+    </section>
+
+    <!-- 05 By Acquisition Channel -->
+    <section class="panel">
+      <div class="slab"><span class="num">05 //</span><h2>By Acquisition Channel</h2></div>
+      <div class="two-col">
+        <div class="table-scroll"><table class="data" id="channelTable"></table></div>
+        <div class="chart-box"><canvas id="channelChart"></canvas></div>
+      </div>
+    </section>
+
+    <!-- 06 By Sales Rep -->
+    <section class="panel">
+      <div class="slab"><span class="num">06 //</span><h2>By Sales Rep</h2></div>
+      <div class="two-col">
+        <div class="table-scroll"><table class="data" id="repTable"></table></div>
+        <div class="chart-box"><canvas id="repChart"></canvas></div>
+      </div>
+    </section>
+
+    <!-- 07 After the Order -->
+    <section class="panel">
+      <div class="slab"><span class="num">07 //</span><h2>After the Order</h2></div>
+      <div class="grid cols-4" id="afterOrderCards"></div>
+    </section>
+
+    <!-- 08 Outreach Volume -->
+    <section class="panel">
+      <div class="slab"><span class="num">08 //</span><h2>Outreach Volume</h2></div>
+      <div class="grid cols-4" id="outreachVolumeCards"></div>
+    </section>
+
+    <!-- 09 Outreach Conversion Ratios -->
+    <section class="panel">
+      <div class="slab"><span class="num">09 //</span><h2>Outreach Conversion Ratios</h2></div>
+      <div class="grid cols-4" id="orCards"></div>
+    </section>
+
+    <!-- 10 Outreach by Product Type -->
+    <section class="panel">
+      <div class="slab"><span class="num">10 //</span><h2>Outreach by Product Type</h2></div>
+      <div class="table-scroll"><table class="data" id="productTable"></table></div>
+    </section>
+
+    <!-- 11 Outreach by Channel -->
+    <section class="panel">
+      <div class="slab"><span class="num">11 //</span><h2>Outreach by Channel</h2></div>
+      <div class="table-scroll"><table class="data" id="outreachChannelTable"></table></div>
+    </section>
+
+    <!-- 12 Outreach by Rep -->
+    <section class="panel">
+      <div class="slab"><span class="num">12 //</span><h2>Outreach by Rep</h2></div>
+      <div class="table-scroll"><table class="data" id="outreachRepTable"></table></div>
+    </section>
+
+    <div id="verifyPanel" class="verify-panel hidden"></div>
+  </div>
+
+  <footer>
+    <div>Factory Twenty One — internal sales dashboard. Data refreshed on demand from the team's Google Sheet. No auto-polling.</div>
+    <div id="footerNote" style="margin-top:6px;"></div>
+  </footer>
+</main>
+
+<script>
+/* ============================================================
+   SHEET SOURCES — swap these for your published CSV links.
+   Publish each tab individually: File → Share → Publish to web
+   → pick the single tab → Comma-separated values (.csv) → Publish.
+   ============================================================ */
+const SHEET_URLS = {
+  crm:        "PASTE_CRM_CSV_URL",
+  outreach:   "PASTE_OUTREACH_CSV_URL",
+  feedback:   "PASTE_CLIENT_FEEDBACK_CSV_URL",
+  complaints: "PASTE_CLIENT_COMPLAINTS_CSV_URL",
+  lists:      "PASTE_LISTS_CSV_URL",
+};
+
+/* ============================================================
+   CONSTANTS — brand + business rules
+   ============================================================ */
+const STATUS_RANK = {
+  "Assigned": 1,
+  "Contacted": 2,
+  "Follow Up": 2,
+  "Booked a Meeting": 3,
+  "Sample In": 4,
+  "Quotation & Negotiation": 5,
+  "Order In": 6,
+  "Order Delivered (Feedback Time)": 7,
+};
+
+const STATUS_COLORS = {
+  "Assigned":                        {bg:"#EFEFEF", text:"#111111"},
+  "Contacted":                       {bg:"#FFEDE0", text:"#111111"},
+  "Booked a Meeting":                {bg:"#FFD9BF", text:"#111111"},
+  "Follow Up":                       {bg:"#FFF6D9", text:"#111111"},
+  "Sample In":                       {bg:"#FFC49E", text:"#111111"},
+  "Quotation & Negotiation":         {bg:"#FFA873", text:"#111111"},
+  "Order In":                        {bg:"#FF5C01", text:"#111111"}, /* black text: white-on-orange fails AA contrast */
+  "Order Delivered (Feedback Time)": {bg:"#111111", text:"#FFFFFF"},
+  "Dead Deal":                       {bg:"#DCDCDC", text:"#6E6E6E"},
+};
+
+const OUTREACH_STATUS_COLORS = {
+  "Awaiting Reply":         {bg:"#FFF6D9", text:"#111111"},
+  "Responded Positively":   {bg:"#D9EAD3", text:"#111111"},
+  "Responded Negatively":   {bg:"#F4CCCC", text:"#111111"},
+  "No Response":            {bg:"#DCDCDC", text:"#111111"},
+};
+
+const FUNNEL_STAGE_NAMES = [
+  "Assigned (1)", "Contacted (2)", "Booked a Meeting (3)", "Sample In (4)",
+  "Quotation & Negotiation (5)", "Order In (6)", "Order Delivered (7)"
+];
+
+const CR_DEFS = [
+  {code:"CR-01", name:"Contact Rate",           calc:s => [s.reached(2), s.reached(1)]},
+  {code:"CR-02", name:"Meeting Booking Rate",    calc:s => [s.reached(3), s.reached(2)]},
+  {code:"CR-03", name:"Sampling Rate",           calc:s => [s.reached(4), s.reached(3)]},
+  {code:"CR-04", name:"Quotation Rate",          calc:s => [s.reached(5), s.reached(4)]},
+  {code:"CR-05", name:"Close Rate",              calc:s => [s.reached(6), s.reached(5)]},
+  {code:"CR-06", name:"Fulfilment Rate",         calc:s => [s.reached(7), s.reached(6)]},
+  {code:"CR-07", name:"Sample-to-Order Rate",    calc:s => [s.reached(6), s.reached(4)]},
+  {code:"CR-08", name:"Lead-to-Meeting Rate",    calc:s => [s.reached(3), s.reached(1)]},
+  {code:"CR-09", name:"Meeting-to-Order Rate",   calc:s => [s.reached(6), s.reached(3)]},
+  {code:"CR-10", name:"Overall Win Rate",        calc:s => [s.reached(6), s.reached(1)]},
+  {code:"CR-11", name:"Dead Deal Rate",          calc:s => [s.deadCount, s.total]},
+  {code:"CR-12", name:"Follow-Up Load",          calc:s => [s.followUpCount, s.active]},
+  {code:"CR-13", name:"Active Pipeline Rate",    calc:s => [s.active, s.total]},
+  {code:"CR-14", name:"Sample Wastage Rate",     calc:s => [s.reached(4)-s.reached(6), s.reached(4)]},
+];
+
+const OR_DEFS = [
+  {code:"OR-01", name:"Reply Rate",              calc:s => [s.positive+s.negative, s.concluded]},
+  {code:"OR-02", name:"Positive Response Rate",  calc:s => [s.positive, s.concluded]},
+  {code:"OR-03", name:"Reply Quality",           calc:s => [s.positive, s.positive+s.negative]},
+  {code:"OR-04", name:"Silence Rate",            calc:s => [s.noResponse, s.concluded]},
+  {code:"OR-05", name:"Outreach-to-Client Rate", calc:s => [s.converted, s.concluded]},
+  {code:"OR-06", name:"Positive-to-Client Rate", calc:s => [s.converted, s.positive]},
+];
+
+const MS_DAY = 86400000;
+const NOW = new Date();
+
+/* ============================================================
+   HELPERS
+   ============================================================ */
+const $ = sel => document.querySelector(sel);
+const $all = sel => Array.from(document.querySelectorAll(sel));
+
+function fmtInt(n){
+  if(n===null || n===undefined || !isFinite(n)) return "—";
+  return Math.round(n).toLocaleString("en-US");
+}
+function fmtPct(x){
+  if(x===null || x===undefined || !isFinite(x)) return "—";
+  return (x*100).toFixed(1)+"%";
+}
+function safeDiv(n,d){
+  if(!d || !isFinite(d) || d<=0) return NaN;
+  return n/d;
+}
+function escapeHtml(s){
+  return String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+}
+function daysBetween(a,b){
+  if(!(a instanceof Date) || isNaN(a) || !(b instanceof Date) || isNaN(b)) return null;
+  return Math.round((b-a)/MS_DAY);
+}
+const MONTHS = {jan:0,feb:1,mar:2,apr:3,may:4,jun:5,jul:6,aug:7,sep:8,oct:9,nov:10,dec:11};
+function parseFactoryDate(str){
+  if(!str) return null;
+  str = String(str).trim();
+  if(!str) return null;
+  const m = str.match(/^(\d{1,2})-([A-Za-z]{3,})-(\d{4})(?:\s+(\d{1,2}):(\d{2}))?$/);
+  if(m){
+    const day = parseInt(m[1],10);
+    const monKey = m[2].slice(0,3).toLowerCase();
+    const mon = MONTHS[monKey];
+    const year = parseInt(m[3],10);
+    if(mon===undefined) return null;
+    const hh = m[4]?parseInt(m[4],10):0;
+    const mm = m[5]?parseInt(m[5],10):0;
+    const d = new Date(year, mon, day, hh, mm);
+    return isNaN(d) ? null : d;
+  }
+  const generic = new Date(str);
+  return isNaN(generic) ? null : generic;
+}
+
+/* ---------- RFC4180-ish CSV parser (quotes, commas, embedded newlines) ---------- */
+function parseCSV(text){
+  const rows = [];
+  let row = [], field = "", i = 0, inQuotes = false;
+  const n = text.length;
+  while(i < n){
+    const c = text[i];
+    if(inQuotes){
+      if(c === '"'){
+        if(text[i+1] === '"'){ field += '"'; i += 2; continue; }
+        inQuotes = false; i++; continue;
+      }
+      field += c; i++; continue;
+    } else {
+      if(c === '"'){ inQuotes = true; i++; continue; }
+      if(c === ','){ row.push(field); field = ""; i++; continue; }
+      if(c === '\r'){ i++; continue; }
+      if(c === '\n'){ row.push(field); rows.push(row); row = []; field = ""; i++; continue; }
+      field += c; i++; continue;
+    }
+  }
+  row.push(field);
+  if(row.length > 1 || row[0] !== "") rows.push(row);
+  return rows;
+}
+
+/* Row 1 = banner, row 2 = header, data from row 3. Returns array of {header:value} */
+function toObjects(rawRows){
+  if(rawRows.length < 2) return [];
+  const header = rawRows[1].map(h => (h||"").trim());
+  const dataRows = rawRows.slice(2);
+  return dataRows
+    .filter(r => r.some(v => (v||"").trim() !== ""))
+    .map(r => {
+      const o = {};
+      header.forEach((h,idx) => { if(h) o[h] = (r[idx] ?? "").trim(); });
+      return o;
+    });
+}
+
+function buildLists(rawObjs){
+  const lists = {};
+  rawObjs.forEach(o => {
+    Object.keys(o).forEach(k => {
+      const v = (o[k]||"").trim();
+      if(!v) return;
+      if(!lists[k]) lists[k] = [];
+      if(!lists[k].includes(v)) lists[k].push(v);
+    });
+  });
+  return lists;
+}
+
+/* ============================================================
+   NORMALIZERS — header-name based, tolerant of column order
+   ============================================================ */
+function pick(raw, ...names){
+  for(const n of names){ if(raw[n] !== undefined) return raw[n]; }
+  return "";
+}
+
+function normalizeCrmRow(raw){
+  const clientName = (pick(raw,"Client Name")||"").trim();
+  if(!clientName) return null;
+  const status = (pick(raw,"Client Status")||"").trim();
+  const stageReachedIfDead = (pick(raw,"Stage Reached (if Dead Deal)")||"").trim();
+  const statusChangedOn = parseFactoryDate(pick(raw,"Status Changed On"));
+  const lastContactDate = parseFactoryDate(pick(raw,"Last Contact Date"));
+  let effRank;
+  if(status === "Dead Deal"){
+    effRank = STATUS_RANK[stageReachedIfDead] || 1;
+  } else {
+    effRank = STATUS_RANK[status] || 1;
+  }
+  const daysInStageSheet = parseFloat(pick(raw,"Days in Current Stage"));
+  const daysSinceContactSheet = parseFloat(pick(raw,"Days Since Last Contact"));
+  const daysInStage = statusChangedOn ? daysBetween(statusChangedOn, NOW) : (isFinite(daysInStageSheet)?daysInStageSheet:null);
+  const daysSinceLastContact = lastContactDate ? daysBetween(lastContactDate, NOW) : (isFinite(daysSinceContactSheet)?daysSinceContactSheet:null);
+  return {
+    id: pick(raw,"Client ID"),
+    dateAdded: parseFactoryDate(pick(raw,"Date Added")),
+    clientName,
+    phone: pick(raw,"Phone Number"),
+    brandName: (pick(raw,"Brand Name")||"").trim(),
+    source: (pick(raw,"Source / Platform")||"").trim(),
+    brandLink: pick(raw,"Brand Link"),
+    brief: pick(raw,"Client Brief (products, quantities, fabrics, MOQ...)","Client Brief"),
+    services: pick(raw,"Services Interested In"),
+    rep: (pick(raw,"Sales Assigned")||"").trim(),
+    status,
+    stageReachedIfDead,
+    statusChangedOn,
+    lastContactDate,
+    daysInStage,
+    daysSinceLastContact,
+    notes: pick(raw,"Comments / Notes"),
+    effRank,
+    hasStatus: !!status,
+  };
+}
+
+function normalizeOutreachRow(raw){
+  const brandName = (pick(raw,"Brand Name")||"").trim();
+  if(!brandName) return null;
+  const timestamp = parseFactoryDate(pick(raw,"Timestamp"));
+  const status = (pick(raw,"Status")||"").trim();
+  const followUps = parseInt(pick(raw,"Follow-Ups Sent"),10);
+  const replyDate = parseFactoryDate(pick(raw,"Reply Date"));
+  const daysToReplySheet = parseFloat(pick(raw,"Days to Reply"));
+  const daysSinceSentSheet = parseFloat(pick(raw,"Days Since Sent"));
+  const daysSinceSent = timestamp ? daysBetween(timestamp, NOW) : (isFinite(daysSinceSentSheet)?daysSinceSentSheet:null);
+  const daysToReply = (timestamp && replyDate) ? daysBetween(timestamp, replyDate) : (isFinite(daysToReplySheet)?daysToReplySheet:null);
+  return {
+    id: pick(raw,"Outreach ID"),
+    timestamp,
+    brandName,
+    brandLink: pick(raw,"Brand Link / Handle"),
+    productType: (pick(raw,"Product Type")||"").trim(),
+    channel: (pick(raw,"Channel Used")||"").trim(),
+    sentBy: (pick(raw,"Sent By")||"").trim(),
+    angle: pick(raw,"Message Angle"),
+    status,
+    followUps: isFinite(followUps) ? followUps : 0,
+    replyDate,
+    daysToReply,
+    daysSinceSent,
+    convertedToCrm: (pick(raw,"Converted to CRM?")||"").trim(),
+    clientNameInCrm: pick(raw,"Client Name in CRM"),
+    notes: pick(raw,"Notes"),
+  };
+}
+
+function normalizeFeedbackRow(raw){
+  const clientName = (pick(raw,"Client Name")||"").trim();
+  if(!clientName) return null;
+  const feedback = (pick(raw,"Feedback")||"").trim();
+  return {
+    id: pick(raw,"Feedback ID"),
+    date: parseFactoryDate(pick(raw,"Date")),
+    clientName,
+    brandName: pick(raw,"Brand Name"),
+    phone: pick(raw,"Phone Number"),
+    orderId: pick(raw,"Order ID"),
+    feedback,
+    isPositive: /positive/i.test(feedback),
+    isNegative: /negative/i.test(feedback),
+    reasoning: pick(raw,"Reasoning"),
+    notes: pick(raw,"Comments / Notes"),
+  };
+}
+
+function normalizeComplaintRow(raw){
+  const clientName = (pick(raw,"Client Name")||"").trim();
+  if(!clientName) return null;
+  const dateRaised = parseFactoryDate(pick(raw,"Date Raised"));
+  const dateResolved = parseFactoryDate(pick(raw,"Date Resolved"));
+  const status = (pick(raw,"Status")||"").trim();
+  const isResolved = /resolved/i.test(status) || !!dateResolved;
+  const daysOpenSheet = parseFloat(pick(raw,"Days Open"));
+  return {
+    id: pick(raw,"Complaint ID"),
+    dateRaised,
+    brandName: pick(raw,"Brand Name"),
+    clientName,
+    problem: pick(raw,"Problem"),
+    status,
+    isResolved,
+    handled: pick(raw,"How You Handled It"),
+    dateResolved,
+    daysToResolve: (dateRaised && dateResolved) ? daysBetween(dateRaised,dateResolved) : (isFinite(daysOpenSheet)?daysOpenSheet:null),
+  };
+}
+
+/* ============================================================
+   STATE
+   ============================================================ */
+const STATE = {
+  crm: [], outreach: [], feedback: [], complaints: [], lists: {},
+  isDemo: false,
+};
+
+/* ============================================================
+   DEMO FIXTURE — hand-checked (see prompt spec)
+   Raw header-keyed rows, run through the SAME normalize functions
+   as live data, so the demo exercises the real pipeline.
+   ============================================================ */
+function buildDemoFixture(){
+  const reps = ["Nourhan","Karim","Sara","Youssef"];
+  const sources = ["Instagram (IG)","TikTok (TT)","Referred (WOM)","Outreach","Other"];
+  const fmt = d => {
+    const months=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+    return `${String(d.getDate()).padStart(2,"0")}-${months[d.getMonth()]}-${d.getFullYear()}`;
+  };
+  const daysAgo = n => { const d=new Date(NOW.getTime()-n*MS_DAY); return d; };
+
+  // 22 CRM rows matching: 6 Assigned, 3 Contacted, 2 Follow Up, 2 Booked a Meeting,
+  // 1 Sample In, 2 Quotation & Negotiation, 2 Order In, 1 Order Delivered, 3 Dead Deal
+  // (Stage Reached = Contacted, Sample In, Booked a Meeting respectively)
+  const plan = [
+    ...Array(6).fill({status:"Assigned"}),
+    ...Array(3).fill({status:"Contacted"}),
+    ...Array(2).fill({status:"Follow Up"}),
+    ...Array(2).fill({status:"Booked a Meeting"}),
+    ...Array(1).fill({status:"Sample In"}),
+    ...Array(2).fill({status:"Quotation & Negotiation"}),
+    ...Array(2).fill({status:"Order In"}),
+    ...Array(1).fill({status:"Order Delivered (Feedback Time)"}),
+    {status:"Dead Deal", stageReached:"Contacted"},
+    {status:"Dead Deal", stageReached:"Sample In"},
+    {status:"Dead Deal", stageReached:"Booked a Meeting"},
+  ];
+  const crmRaw = plan.map((p,idx) => {
+    const stageDays = 3 + (idx % 9)*3; // spread of "days in stage" values, 3..27
+    const contactDays = (idx % 5)*4;   // spread of "days since contact", 0..16
+    return {
+      "Client ID": "C"+(idx+1),
+      "Date Added": fmt(daysAgo(60 - idx)),
+      "Client Name": "Client "+(idx+1),
+      "Phone Number": "+2010"+String(1000000+idx),
+      "Brand Name": "Brand "+(idx+1),
+      "Source / Platform": sources[idx % sources.length],
+      "Brand Link": "https://instagram.com/brand"+(idx+1),
+      "Client Brief (products, quantities, fabrics, MOQ...)": "Streetwear capsule, ~300 units, cotton twill.",
+      "Services Interested In": "Manufacturing, QC",
+      "Sales Assigned": reps[idx % reps.length],
+      "Client Status": p.status,
+      "Stage Reached (if Dead Deal)": p.stageReached || "",
+      "Status Changed On": fmt(daysAgo(stageDays)),
+      "Last Contact Date": fmt(daysAgo(contactDays)),
+      "Days in Current Stage": String(stageDays),
+      "Days Since Last Contact": String(contactDays),
+      "Comments / Notes": "",
+      "_Stage Rank": "",
+    };
+  });
+
+  // 20 Outreach rows: 6 Responded Positively (4 Converted=Yes), 3 Responded Negatively,
+  // 6 No Response, 5 Awaiting Reply (3 with 0 follow-ups, sent 19 days ago)
+  const channels = ["Instagram DM","TikTok DM","WhatsApp","Email","LinkedIn"];
+  const products = ["B2B","Streetwear","Old Money","Sportswear","Homewear"];
+  const outreachPlan = [
+    ...Array(6).fill(0).map((_,i)=>({status:"Responded Positively", converted: i<4 ? "Yes":"No"})),
+    ...Array(3).fill({status:"Responded Negatively"}),
+    ...Array(6).fill({status:"No Response"}),
+    ...Array(3).fill({status:"Awaiting Reply", followUps:0, sentDaysAgo:19}),
+    ...Array(2).fill({status:"Awaiting Reply", followUps:1, sentDaysAgo:2}),
+  ];
+  const outreachRaw = outreachPlan.map((p,idx) => {
+    const sentDaysAgo = p.sentDaysAgo !== undefined ? p.sentDaysAgo : 8 + (idx % 6);
+    const sentDate = daysAgo(sentDaysAgo);
+    const hasReply = p.status === "Responded Positively" || p.status === "Responded Negatively";
+    const replyDaysAgo = hasReply ? Math.max(0, sentDaysAgo - (1+idx%4)) : null;
+    return {
+      "Outreach ID": "O"+(idx+1),
+      "Timestamp": fmt(sentDate) + "  13:00",
+      "Brand Name": "Outbound Brand "+(idx+1),
+      "Brand Link / Handle": "@outboundbrand"+(idx+1),
+      "Product Type": products[idx % products.length],
+      "Channel Used": channels[idx % channels.length],
+      "Sent By": reps[idx % reps.length],
+      "Message Angle": "Cold Intro",
+      "Status": p.status,
+      "Follow-Ups Sent": String(p.followUps !== undefined ? p.followUps : (idx % 3)),
+      "Reply Date": hasReply ? fmt(daysAgo(replyDaysAgo)) : "",
+      "Days to Reply": "",
+      "Days Since Sent": "",
+      "Converted to CRM?": p.converted || "No",
+      "Client Name in CRM": "",
+      "Notes": "",
+    };
+  });
+
+  // small feedback / complaints fixtures (not hand-checked by the spec, but exercised)
+  const feedbackRaw = [
+    {"Feedback ID":"F1","Date":fmt(daysAgo(10)),"Client Name":"Client 8","Brand Name":"Brand 8","Phone Number":"","Order ID":"ORD-1","Feedback":"Positive","Reasoning":"On-time delivery, good QC","Comments / Notes":""},
+    {"Feedback ID":"F2","Date":fmt(daysAgo(20)),"Client Name":"Client 22","Brand Name":"Brand 22","Phone Number":"","Order ID":"ORD-2","Feedback":"Negative","Reasoning":"Late shipping","Comments / Notes":""},
+    {"Feedback ID":"F3","Date":fmt(daysAgo(5)),"Client Name":"Client 8","Brand Name":"Brand 8","Phone Number":"","Order ID":"ORD-3","Feedback":"Positive","Reasoning":"Great fabric quality","Comments / Notes":""},
+  ];
+  const complaintsRaw = [
+    {"Complaint ID":"CP1","Date Raised":fmt(daysAgo(15)),"Brand Name":"Brand 22","Client Name":"Client 22","Problem":"Wrong sizing on 40 units","Status":"Resolved","How You Handled It":"Remake + discount","Date Resolved":fmt(daysAgo(5)),"Days Open":"10"},
+    {"Complaint ID":"CP2","Date Raised":fmt(daysAgo(4)),"Brand Name":"Brand 8","Client Name":"Client 8","Problem":"Print misalignment","Status":"In Progress","How You Handled It":"QC re-run scheduled","Date Resolved":"","Days Open":"4"},
+  ];
+
+  const listsRaw = [{
+    "Client Status":"Assigned","Source / Platform":"Instagram (IG)","Sales Team":reps[0],
+    "Services":"Design","Product Type":"B2B","Outreach Channel":"Instagram DM","Outreach Status":"Awaiting Reply","Message Angle":"Cold Intro"
+  },{
+    "Client Status":"Contacted","Source / Platform":"TikTok (TT)","Sales Team":reps[1],
+    "Services":"Pattern Making","Product Type":"Streetwear","Outreach Channel":"TikTok DM","Outreach Status":"Responded Positively","Message Angle":"Portfolio Showcase"
+  },{
+    "Client Status":"Booked a Meeting","Source / Platform":"Referred (WOM)","Sales Team":reps[2],
+    "Services":"Sampling","Product Type":"Old Money","Outreach Channel":"WhatsApp","Outreach Status":"Responded Negatively","Message Angle":"Price / MOQ Hook"
+  },{
+    "Client Status":"Follow Up","Source / Platform":"Outreach","Sales Team":reps[3],
+    "Services":"Manufacturing","Product Type":"Sportswear","Outreach Channel":"Email","Outreach Status":"No Response","Message Angle":"Case Study"
+  },{
+    "Client Status":"Dead Deal","Source / Platform":"Other","Sales Team":"",
+    "Services":"Printing","Product Type":"Homewear","Outreach Channel":"LinkedIn","Outreach Status":"","Message Angle":"Event / Trade Show"
+  },{
+    "Client Status":"Sample In","Source / Platform":"","Sales Team":"",
+    "Services":"Quality Control (QC)","Product Type":"Other","Outreach Channel":"Phone Call","Outreach Status":"","Message Angle":"Referral Mention"
+  },{
+    "Client Status":"Quotation & Negotiation","Source / Platform":"","Sales Team":"",
+    "Services":"Photography","Product Type":"","Outreach Channel":"In Person / Event","Outreach Status":"","Message Angle":"Re-engagement"
+  },{
+    "Client Status":"Order In","Source / Platform":"","Sales Team":"",
+    "Services":"Shipping","Product Type":"","Outreach Channel":"Other","Outreach Status":"","Message Angle":"Other"
+  },{
+    "Client Status":"Order Delivered (Feedback Time)","Source / Platform":"","Sales Team":"",
+    "Services":"Full Package (End-to-End)","Product Type":"","Outreach Channel":"","Outreach Status":"","Message Angle":""
+  }];
+
+  return {
+    crm: crmRaw.map(normalizeCrmRow).filter(Boolean),
+    outreach: outreachRaw.map(normalizeOutreachRow).filter(Boolean),
+    feedback: feedbackRaw.map(normalizeFeedbackRow).filter(Boolean),
+    complaints: complaintsRaw.map(normalizeComplaintRow).filter(Boolean),
+    lists: buildLists(listsRaw),
+  };
+}
+
+/* ============================================================
+   LIVE FETCH
+   ============================================================ */
+async function fetchTab(url){
+  const res = await fetch(url, {cache:"no-store"});
+  if(!res.ok) throw new Error("HTTP "+res.status);
+  const text = await res.text();
+  if(/^\s*<!DOCTYPE html/i.test(text) || /<html/i.test(text.slice(0,200))){
+    throw new Error("Got an HTML page back instead of CSV — the tab is probably not published, or it's unshared.");
+  }
+  return toObjects(parseCSV(text));
+}
+
+async function loadLive(){
+  const tabs = ["crm","outreach","feedback","complaints","lists"];
+  const results = await Promise.allSettled(tabs.map(t => fetchTab(SHEET_URLS[t])));
+  const failures = [];
+  const raw = {};
+  results.forEach((r,idx) => {
+    const tab = tabs[idx];
+    if(r.status === "fulfilled"){ raw[tab] = r.value; }
+    else { failures.push({tab, reason: r.reason && r.reason.message || String(r.reason)}); raw[tab] = []; }
+  });
+  if(failures.length){
+    const err = new Error("fetch-failed");
+    err.failures = failures;
+    err.raw = raw;
+    throw err;
+  }
+  return {
+    crm: raw.crm.map(normalizeCrmRow).filter(Boolean),
+    outreach: raw.outreach.map(normalizeOutreachRow).filter(Boolean),
+    feedback: raw.feedback.map(normalizeFeedbackRow).filter(Boolean),
+    complaints: raw.complaints.map(normalizeComplaintRow).filter(Boolean),
+    lists: buildLists(raw.lists),
+  };
+}
+
+function urlsArePlaceholders(){
+  return Object.values(SHEET_URLS).some(u => !u || u.indexOf("PASTE_") === 0 || u.trim()==="");
+}
+
+/* ============================================================
+   FILTERS
+   ============================================================ */
+const FILTERS = {dateFrom:null, dateTo:null, rep:"", source:"", product:""};
+
+function inDateRange(d){
+  if(!(d instanceof Date) || isNaN(d)) return true; // don't drop undated rows on a date filter
+  if(FILTERS.dateFrom && d < FILTERS.dateFrom) return false;
+  if(FILTERS.dateTo && d > FILTERS.dateTo) return false;
+  return true;
+}
+
+function filteredCrm(){
+  return STATE.crm.filter(r =>
+    inDateRange(r.dateAdded) &&
+    (!FILTERS.rep || r.rep === FILTERS.rep) &&
+    (!FILTERS.source || r.source === FILTERS.source)
+  );
+}
+function filteredOutreach(){
+  return STATE.outreach.filter(r =>
+    inDateRange(r.timestamp) &&
+    (!FILTERS.rep || r.sentBy === FILTERS.rep) &&
+    (!FILTERS.product || r.productType === FILTERS.product)
+  );
+}
+function filteredFeedback(){
+  return STATE.feedback.filter(r => inDateRange(r.date));
+}
+function filteredComplaints(){
+  return STATE.complaints.filter(r => inDateRange(r.dateRaised));
+}
+
+/* ============================================================
+   STATS ENGINE
+   ============================================================ */
+function buildCrmStats(rows){
+  const total = rows.length;
+  const reachedCache = {};
+  const reached = n => {
+    if(reachedCache[n] !== undefined) return reachedCache[n];
+    const v = rows.filter(r => r.effRank >= n).length;
+    reachedCache[n] = v;
+    return v;
+  };
+  const deadCount = rows.filter(r => r.status === "Dead Deal").length;
+  const deliveredCount = rows.filter(r => r.status === "Order Delivered (Feedback Time)").length;
+  const active = total - deadCount - deliveredCount;
+  const followUpCount = rows.filter(r => r.status === "Follow Up").length;
+  return {rows, total, reached, deadCount, deliveredCount, active, followUpCount};
+}
+
+function buildOutreachStats(rows){
+  const total = rows.length;
+  const awaiting = rows.filter(r => r.status === "Awaiting Reply").length;
+  const concluded = total - awaiting;
+  const positive = rows.filter(r => r.status === "Responded Positively").length;
+  const negative = rows.filter(r => r.status === "Responded Negatively").length;
+  const noResponse = rows.filter(r => r.status === "No Response").length;
+  const converted = rows.filter(r => /^yes$/i.test(r.convertedToCrm)).length;
+  const chaseList = rows.filter(r => r.status === "Awaiting Reply" && r.daysSinceSent !== null && r.daysSinceSent >= 5 && r.followUps === 0);
+  return {rows, total, awaiting, concluded, positive, negative, noResponse, converted, chaseList};
+}
+
+function crCardsData(s){
+  return CR_DEFS.map(def => {
+    const [num,den] = def.calc(s);
+    return {...def, num, den, rate: safeDiv(num,den)};
+  });
+}
+function orCardsData(s){
+  return OR_DEFS.map(def => {
+    const [num,den] = def.calc(s);
+    return {...def, num, den, rate: safeDiv(num,den)};
+  });
+}
+
+/* ============================================================
+   RENDER — small helpers
+   ============================================================ */
+function statusPill(status, colorMap){
+  const c = colorMap[status] || {bg:"var(--surface-2)", text:"var(--text)"};
+  return `<span class="status-pill" style="background:${c.bg};color:${c.text}">${escapeHtml(status||"—")}</span>`;
+}
+function barCell(pct, color){
+  const p = isFinite(pct) ? Math.max(0,Math.min(100,pct*100)) : 0;
+  return `<div class="bar-cell"><div class="bar-track"><div class="bar-fill" style="width:${p}%;background:${color}"></div></div><span class="bar-num">${fmtPct(pct)}</span></div>`;
+}
+
+function renderCrCards(containerId, defs){
+  const el = $(containerId);
+  el.innerHTML = defs.map(d => `
+    <div class="card cr-card" title="${d.name}: ${fmtInt(d.num)} / ${fmtInt(d.den)}">
+      <span class="code">${d.code}</span>
+      <div class="name">${d.name}</div>
+      <div class="rate">${fmtPct(d.rate)}</div>
+      <div class="frac">${fmtInt(d.num)} / ${fmtInt(d.den)}</div>
+    </div>
+  `).join("");
+}
+
+function healthCard(label, value, sub, flag){
+  const cls = flag === "red" ? "flag-red" : flag === "amber" ? "flag-amber" : "";
+  return `<div class="card ${cls}"><div class="kicker">${escapeHtml(label)}</div><div class="big">${value}</div>${sub?`<div class="sub">${sub}</div>`:""}</div>`;
+}
+
+/* ---------- sortable tables ---------- */
+function renderSortableTable(el, columns, rows, opts){
+  opts = opts || {};
+  el.dataset.sortCol = el.dataset.sortCol || "0";
+  el.dataset.sortDir = el.dataset.sortDir || "desc";
+  const sortCol = parseInt(el.dataset.sortCol,10);
+  const sortDir = el.dataset.sortDir;
+  const sorted = rows.slice().sort((a,b) => {
+    const va = columns[sortCol].value(a), vb = columns[sortCol].value(b);
+    let cmp;
+    if(typeof va === "number" && typeof vb === "number") cmp = va-vb;
+    else cmp = String(va).localeCompare(String(vb));
+    return sortDir === "asc" ? cmp : -cmp;
+  });
+  const thead = `<thead><tr>${columns.map((c,i) => `<th data-idx="${i}" class="${i===sortCol?(sortDir==='asc'?'sort-asc':'sort-desc'):''}">${escapeHtml(c.label)}</th>`).join("")}</tr></thead>`;
+  const tbody = `<tbody>${sorted.map(r => `<tr>${columns.map(c => `<td>${c.render ? c.render(r) : escapeHtml(c.value(r))}</td>`).join("")}</tr>`).join("") || `<tr><td colspan="${columns.length}" style="text-align:center;color:var(--text-secondary);">No data</td></tr>`}</tbody>`;
+  const tfoot = opts.footer ? `<tfoot><tr>${opts.footer(rows).map(v => `<td>${v}</td>`).join("")}</tr></tfoot>` : "";
+  el.innerHTML = thead + tbody + tfoot;
+  el.querySelectorAll("thead th").forEach(th => {
+    th.addEventListener("click", () => {
+      const idx = parseInt(th.dataset.idx,10);
+      if(parseInt(el.dataset.sortCol,10) === idx){
+        el.dataset.sortDir = el.dataset.sortDir === "asc" ? "desc" : "asc";
+      } else {
+        el.dataset.sortCol = String(idx);
+        el.dataset.sortDir = "desc";
+      }
+      renderSortableTable(el, columns, rows, opts);
+    });
+  });
+}
+
+/* ============================================================
+   RENDER — top level sections
+   ============================================================ */
+let charts = {};
+function destroyChart(key){
+  if(charts[key]){ charts[key].destroy(); delete charts[key]; }
+}
+
+function renderAll(){
+  const crmRows = filteredCrm();
+  const outreachRows = filteredOutreach();
+  const feedbackRows = filteredFeedback();
+  const complaintsRows = filteredComplaints();
+
+  const crmStats = buildCrmStats(crmRows);
+  const outreachStats = buildOutreachStats(outreachRows);
+  const crData = crCardsData(crmStats);
+  const orData = orCardsData(outreachStats);
+
+  renderHero(crmStats, outreachStats, outreachRows);
+  renderActionRail(crmRows, outreachStats);
+  renderPipelineCounter(crmRows, crmStats);
+  renderFunnel(crmStats);
+  renderCrCards("#crCards", crData);
+  renderHealth(crmRows, crmStats);
+  renderChannelSection(crmRows, crmStats);
+  renderRepSection(crmRows, crmStats);
+  renderAfterOrder(feedbackRows, complaintsRows, crmStats);
+  renderOutreachVolume(outreachStats);
+  renderCrCards("#orCards", orData);
+  renderOutreachBreakdowns(outreachRows, outreachStats);
+
+  $("#heroSection").classList.remove("hidden");
+  $("#dashboardBody").classList.remove("hidden");
+
+  if(STATE.isDemo) runVerification(crData, orData, outreachStats);
+}
+
+function renderHero(s, os, outreachRows){
+  const cr10 = safeDiv(s.reached(6), s.reached(1));
+  const or02 = safeDiv(os.positive, os.concluded);
+  const tiles = [
+    {label:"Total Clients", value: fmtInt(s.total)},
+    {label:"Overall Win Rate (CR-10)", value: fmtPct(cr10), accent:true},
+    {label:"Active Pipeline", value: fmtInt(s.active)},
+    {label:"Orders in Production", value: fmtInt(s.rows.filter(r=>r.status==="Order In").length)},
+    {label:"Positive Response Rate (OR-02)", value: fmtPct(or02), accent:true},
+    {label:"Chase List", value: fmtInt(os.chaseList.length)},
+  ];
+  $("#heroKpis").innerHTML = tiles.map(t => `
+    <div class="hero-tile"><div class="label">${t.label}</div><div class="value ${t.accent?'accent':''}">${t.value}</div></div>
+  `).join("");
+}
+
+function renderActionRail(crmRows, os){
+  const needsChase = [];
+  crmRows.forEach(r => {
+    if(r.status === "Dead Deal" || r.status === "Order Delivered (Feedback Time)") return;
+    const overStage = r.daysInStage !== null && r.daysInStage >= 21;
+    const overContact = r.daysSinceLastContact !== null && r.daysSinceLastContact >= 14;
+    if(overStage || overContact){
+      needsChase.push({
+        type:"CRM", brand:r.brandName||r.clientName, owner:r.rep, status:r.status,
+        days: Math.max(r.daysInStage||0, r.daysSinceLastContact||0),
+        detail: overContact ? `${r.daysSinceLastContact}d no contact` : `${r.daysInStage}d in stage`,
+      });
+    }
+  });
+  os.chaseList.forEach(r => {
+    needsChase.push({type:"Outreach", brand:r.brandName, owner:r.sentBy, status:r.status, days:r.daysSinceSent, detail:`${r.daysSinceSent}d since sent, 0 follow-ups`});
+  });
+  needsChase.sort((a,b) => b.days - a.days);
+
+  renderSortableTable($("#chaseTable"), [
+    {label:"Brand", value:r=>r.brand},
+    {label:"Owner", value:r=>r.owner||"—"},
+    {label:"Status", value:r=>r.status, render:r=>statusPill(r.status, r.type==="CRM"?STATUS_COLORS:OUTREACH_STATUS_COLORS)},
+    {label:"Days", value:r=>r.days, render:r=>`${fmtInt(r.days)} <span class="section-note" style="margin:0;">(${escapeHtml(r.detail)})</span>`},
+  ], needsChase);
+
+  const closest = crmRows
+    .filter(r => r.status === "Quotation & Negotiation" || r.status === "Sample In")
+    .sort((a,b) => (b.daysInStage||0)-(a.daysInStage||0));
+  renderSortableTable($("#closestTable"), [
+    {label:"Brand", value:r=>r.brandName||r.clientName},
+    {label:"Owner", value:r=>r.rep||"—"},
+    {label:"Status", value:r=>r.status, render:r=>statusPill(r.status, STATUS_COLORS)},
+    {label:"Days in Stage", value:r=>r.daysInStage||0},
+  ], closest);
+}
+
+function renderPipelineCounter(crmRows, s){
+  const statuses = Object.keys(STATUS_RANK).concat(["Dead Deal"]);
+  const counts = statuses.map(st => crmRows.filter(r => r.status === st).length);
+  const total = s.total || 1;
+  const rowsHtml = statuses.map((st,i) => {
+    const c = STATUS_COLORS[st];
+    const pct = counts[i]/total;
+    return `<div style="display:flex;align-items:center;gap:10px;padding:6px 4px;border-bottom:1px solid var(--border);">
+      <div style="width:220px;">${statusPill(st, STATUS_COLORS)}</div>
+      <div class="bar-track" style="flex:1;height:16px;background:var(--surface-2);border-radius:2px;overflow:hidden;">
+        <div style="height:100%;width:${Math.max(pct*100,counts[i]?2:0)}%;background:${c.bg};border-right:2px solid var(--surface);"></div>
+      </div>
+      <div style="width:110px;text-align:right;font-size:13px;">${fmtInt(counts[i])} <span style="color:var(--text-secondary);">(${fmtPct(pct)})</span></div>
+    </div>`;
+  }).join("");
+  $("#pipelineCounter").innerHTML = `<div style="min-width:520px;padding:10px;">${rowsHtml}</div>`;
+}
+
+function renderFunnel(s){
+  const vals = [1,2,3,4,5,6,7].map(n => s.reached(n));
+  const max = vals[0] || 1;
+  const w = 760, stageH = 54, gap = 6;
+  const h = vals.length*(stageH+gap);
+  let svg = `<svg class="funnel-svg" viewBox="0 0 ${w} ${h}" role="img" aria-label="Sales funnel">`;
+  vals.forEach((v,i) => {
+    const wTop = i===0 ? w*0.94 : (w*0.94)*(vals[i-1]/max);
+    const wBot = (w*0.94)*(v/max);
+    const y = i*(stageH+gap);
+    const xTop = (w-wTop)/2, xBot = (w-wBot)/2;
+    const drop = i>0 ? safeDiv(vals[i-1]-v, vals[i-1]) : 0;
+    svg += `<g>
+      <polygon points="${xTop},${y} ${xTop+wTop},${y} ${xBot+wBot},${y+stageH} ${xBot},${y+stageH}"
+        fill="#FF5C01" fill-opacity="${0.35+0.65*(i/(vals.length-1||1))}" stroke="#111111" stroke-width="1">
+        <title>${FUNNEL_STAGE_NAMES[i]}: ${v} clients${i>0?` — drop-off ${fmtPct(drop)}`:''}</title>
+      </polygon>
+      <text x="${w/2}" y="${y+stageH/2+5}" text-anchor="middle" font-family="Archivo, sans-serif" font-weight="800" font-size="15" fill="#111111">${FUNNEL_STAGE_NAMES[i]} — ${fmtInt(v)}</text>
+    </g>`;
+  });
+  svg += `</svg>`;
+  const drops = vals.slice(1).map((v,i) => {
+    const prev = vals[i];
+    return `<div class="funnel-drop">${FUNNEL_STAGE_NAMES[i].split(" (")[0]} → ${FUNNEL_STAGE_NAMES[i+1].split(" (")[0]}: <strong>${fmtPct(safeDiv(prev-v,prev))}</strong> drop-off</div>`;
+  }).join("");
+  $("#funnelChart").innerHTML = svg + `<div style="margin-top:10px;display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:4px;">${drops}</div>`;
+}
+
+function renderHealth(crmRows, s){
+  const missingStatus = crmRows.filter(r => !r.hasStatus).length;
+  const activeRows = crmRows.filter(r => r.status !== "Dead Deal" && r.status !== "Order Delivered (Feedback Time)");
+  const avgDaysInStage = safeDiv(activeRows.reduce((a,r)=>a+(r.daysInStage||0),0), activeRows.filter(r=>r.daysInStage!==null).length);
+  const stuck21 = activeRows.filter(r => r.daysInStage !== null && r.daysInStage >= 21).length;
+  const noContact14 = activeRows.filter(r => r.daysSinceLastContact !== null && r.daysSinceLastContact >= 14).length;
+  const samplesOut = crmRows.filter(r => r.status === "Sample In").length;
+  const quotesAwaiting = crmRows.filter(r => r.status === "Quotation & Negotiation").length;
+  const ordersInProd = crmRows.filter(r => r.status === "Order In").length;
+  const cards = [
+    healthCard("Active Pipeline", fmtInt(s.active)),
+    healthCard("Missing a Status", fmtInt(missingStatus), null, missingStatus>0?"amber":null),
+    healthCard("Avg Days in Current Stage", isFinite(avgDaysInStage)?avgDaysInStage.toFixed(1):"—"),
+    healthCard("Stuck 21+ Days", fmtInt(stuck21), null, stuck21>0?"red":null),
+    healthCard("No Contact 14+ Days", fmtInt(noContact14), null, noContact14>0?"amber":null),
+    healthCard("Samples Currently Out", fmtInt(samplesOut)),
+    healthCard("Quotations Awaiting Decision", fmtInt(quotesAwaiting)),
+    healthCard("Orders in Production", fmtInt(ordersInProd)),
+  ];
+  $("#healthCards").innerHTML = cards.join("");
+}
+
+function groupBy(rows, keyFn, universe){
+  const map = new Map();
+  (universe||[]).forEach(k => map.set(k, []));
+  rows.forEach(r => {
+    const k = keyFn(r) || "Unspecified";
+    if(!map.has(k)) map.set(k, []);
+    map.get(k).push(r);
+  });
+  return map;
+}
+
+function renderChannelSection(crmRows, totalStats){
+  const universe = (STATE.lists["Source / Platform"]||[]).slice();
+  const groups = groupBy(crmRows, r => r.source, universe);
+  const totalLeads = crmRows.length || 1;
+  const data = Array.from(groups.entries()).map(([source, rows]) => {
+    const st = buildCrmStats(rows);
+    const meetings = st.reached(3);
+    const orders = st.reached(6);
+    return {source, leads: rows.length, pctLeads: rows.length/totalLeads, meetings, orders, lead2order: safeDiv(orders, rows.length), dead: st.deadCount};
+  }).filter(d => d.leads>0 || universe.includes(d.source));
+
+  renderSortableTable($("#channelTable"), [
+    {label:"Source", value:d=>d.source},
+    {label:"Leads", value:d=>d.leads},
+    {label:"% of Leads", value:d=>d.pctLeads, render:d=>fmtPct(d.pctLeads)},
+    {label:"Reached Meeting", value:d=>d.meetings},
+    {label:"Orders", value:d=>d.orders},
+    {label:"Lead-to-Order %", value:d=>d.lead2order, render:d=>fmtPct(d.lead2order)},
+    {label:"Dead Deals", value:d=>d.dead},
+  ], data, {footer: rows => {
+    const t=rows.reduce((a,d)=>a+d.leads,0), m=rows.reduce((a,d)=>a+d.meetings,0), o=rows.reduce((a,d)=>a+d.orders,0), de=rows.reduce((a,d)=>a+d.dead,0);
+    return ["Total", fmtInt(t), "100.0%", fmtInt(m), fmtInt(o), fmtPct(safeDiv(o,t)), fmtInt(de)];
+  }});
+
+  destroyChart("channel");
+  const ctx = $("#channelChart");
+  if(ctx && window.Chart){
+    charts.channel = new Chart(ctx, {
+      type:"bar",
+      data:{ labels: data.map(d=>d.source),
+        datasets:[
+          {label:"Leads", data:data.map(d=>d.leads), backgroundColor:"#6E6E6E"},
+          {label:"Reached Meeting", data:data.map(d=>d.meetings), backgroundColor:"#FFA873"},
+          {label:"Orders", data:data.map(d=>d.orders), backgroundColor:"#FF5C01"},
+        ]},
+      options:{responsive:true,maintainAspectRatio:false,
+        plugins:{legend:{position:"bottom",labels:{color:getComputedStyle(document.body).color}}},
+        scales:{x:{ticks:{color:getComputedStyle(document.body).color}},y:{beginAtZero:true,ticks:{color:getComputedStyle(document.body).color}}}}
+    });
+  }
+}
+
+function renderRepSection(crmRows, totalStats){
+  const universe = (STATE.lists["Sales Team"]||[]).filter(Boolean);
+  const groups = groupBy(crmRows, r => r.rep, universe);
+  const data = Array.from(groups.entries()).map(([rep, rows]) => {
+    const st = buildCrmStats(rows);
+    const daysVals = rows.filter(r=>r.daysInStage!==null).map(r=>r.daysInStage);
+    const avgDays = daysVals.length ? daysVals.reduce((a,b)=>a+b,0)/daysVals.length : NaN;
+    return {rep: rep||"Unassigned", assigned: rows.length, contacted: st.reached(2), meetings: st.reached(3), orders: st.reached(6), winRate: safeDiv(st.reached(6), st.reached(1)), avgDays};
+  });
+
+  renderSortableTable($("#repTable"), [
+    {label:"Rep", value:d=>d.rep},
+    {label:"Assigned", value:d=>d.assigned},
+    {label:"Contacted", value:d=>d.contacted},
+    {label:"Meetings", value:d=>d.meetings},
+    {label:"Orders", value:d=>d.orders},
+    {label:"Win Rate", value:d=>d.winRate, render:d=>fmtPct(d.winRate)},
+    {label:"Avg Days in Stage", value:d=>isFinite(d.avgDays)?d.avgDays:0, render:d=>isFinite(d.avgDays)?d.avgDays.toFixed(1):"—"},
+  ], data);
+
+  destroyChart("rep");
+  const ctx = $("#repChart");
+  if(ctx && window.Chart){
+    charts.rep = new Chart(ctx, {
+      type:"bar",
+      data:{labels:data.map(d=>d.rep), datasets:[{label:"Win Rate", data:data.map(d=>isFinite(d.winRate)?d.winRate*100:0), backgroundColor:"#FF5C01"}]},
+      options:{indexAxis:"y",responsive:true,maintainAspectRatio:false,
+        plugins:{legend:{display:false}, tooltip:{callbacks:{label:c=>c.parsed.x.toFixed(1)+"%"}}},
+        scales:{x:{beginAtZero:true,max:100,ticks:{color:getComputedStyle(document.body).color}},y:{ticks:{color:getComputedStyle(document.body).color}}}}
+    });
+  }
+}
+
+function renderAfterOrder(feedbackRows, complaintsRows, crmStats){
+  const logged = feedbackRows.length;
+  const positive = feedbackRows.filter(r=>r.isPositive).length;
+  const negative = feedbackRows.filter(r=>r.isNegative).length;
+  const satisfaction = safeDiv(positive, logged);
+  const complaintsLogged = complaintsRows.length;
+  const inProgress = complaintsRows.filter(r=>!r.isResolved).length;
+  const resolved = complaintsRows.filter(r=>r.isResolved).length;
+  const resolutionRate = safeDiv(resolved, complaintsLogged);
+  const resolvedDays = complaintsRows.filter(r=>r.isResolved && r.daysToResolve!==null).map(r=>r.daysToResolve);
+  const avgResolveDays = resolvedDays.length ? resolvedDays.reduce((a,b)=>a+b,0)/resolvedDays.length : NaN;
+  const complaintsPerDelivered = safeDiv(complaintsLogged, crmStats.deliveredCount);
+  $("#afterOrderCards").innerHTML = [
+    healthCard("Feedback Logged", fmtInt(logged)),
+    healthCard("Positive Feedback", fmtInt(positive)),
+    healthCard("Negative Feedback", fmtInt(negative), null, negative>0?"amber":null),
+    healthCard("Satisfaction Rate", fmtPct(satisfaction)),
+    healthCard("Complaints Logged", fmtInt(complaintsLogged), null, complaintsLogged>0?"amber":null),
+    healthCard("Complaints In Progress", fmtInt(inProgress), null, inProgress>0?"red":null),
+    healthCard("Complaints Resolved", fmtInt(resolved)),
+    healthCard("Resolution Rate", fmtPct(resolutionRate)),
+    healthCard("Avg Days to Resolve", isFinite(avgResolveDays)?avgResolveDays.toFixed(1):"—"),
+    healthCard("Complaints per Delivered Order", isFinite(complaintsPerDelivered)?complaintsPerDelivered.toFixed(2):"—"),
+  ].join("");
+}
+
+function renderOutreachVolume(os){
+  const positiveRows = os.rows.filter(r=>r.status==="Responded Positively");
+  const avgFollowUpsBehindPositive = positiveRows.length ? positiveRows.reduce((a,r)=>a+(r.followUps||0),0)/positiveRows.length : NaN;
+  const repliedRows = os.rows.filter(r=>r.daysToReply!==null && r.daysToReply!==undefined);
+  const avgDaysToReply = repliedRows.length ? repliedRows.reduce((a,r)=>a+r.daysToReply,0)/repliedRows.length : NaN;
+  $("#outreachVolumeCards").innerHTML = [
+    healthCard("Brands Contacted", fmtInt(os.total)),
+    healthCard("Awaiting Reply", fmtInt(os.awaiting)),
+    healthCard("Concluded", fmtInt(os.concluded)),
+    healthCard("Positive", fmtInt(os.positive)),
+    healthCard("Negative", fmtInt(os.negative), null, os.negative>0?"amber":null),
+    healthCard("No Response", fmtInt(os.noResponse)),
+    healthCard("Converted", fmtInt(os.converted)),
+    healthCard("Chase List", fmtInt(os.chaseList.length), null, os.chaseList.length>0?"red":null),
+    healthCard("Avg Follow-Ups Behind a Positive", isFinite(avgFollowUpsBehindPositive)?avgFollowUpsBehindPositive.toFixed(1):"—"),
+    healthCard("Avg Days to a Reply", isFinite(avgDaysToReply)?avgDaysToReply.toFixed(1):"—"),
+  ].join("");
+}
+
+function outreachBreakdownRows(rows, keyFn, universe){
+  const groups = groupBy(rows, keyFn, universe);
+  return Array.from(groups.entries()).map(([key, grp]) => {
+    const st = buildOutreachStats(grp);
+    return {
+      key: key||"Unspecified", sent: grp.length, concluded: st.concluded, positive: st.positive,
+      positiveRate: safeDiv(st.positive, st.concluded), converted: st.converted, convertRate: safeDiv(st.converted, st.concluded),
+    };
+  });
+}
+function renderBreakdownTable(el, rows, keyLabel){
+  renderSortableTable(el, [
+    {label:keyLabel, value:d=>d.key},
+    {label:"Sent", value:d=>d.sent},
+    {label:"Concluded", value:d=>d.concluded},
+    {label:"Positive", value:d=>d.positive},
+    {label:"Positive Rate", value:d=>d.positiveRate, render:d=>fmtPct(d.positiveRate)},
+    {label:"Converted", value:d=>d.converted},
+    {label:"Convert Rate", value:d=>d.convertRate, render:d=>fmtPct(d.convertRate)},
+  ], rows, {footer: rr => {
+    const sent=rr.reduce((a,d)=>a+d.sent,0), conc=rr.reduce((a,d)=>a+d.concluded,0), pos=rr.reduce((a,d)=>a+d.positive,0), conv=rr.reduce((a,d)=>a+d.converted,0);
+    return ["Total", fmtInt(sent), fmtInt(conc), fmtInt(pos), fmtPct(safeDiv(pos,conc)), fmtInt(conv), fmtPct(safeDiv(conv,conc))];
+  }});
+}
+function renderOutreachBreakdowns(outreachRows, os){
+  renderBreakdownTable($("#productTable"), outreachBreakdownRows(outreachRows, r=>r.productType, STATE.lists["Product Type"]), "Product Type");
+  renderBreakdownTable($("#outreachChannelTable"), outreachBreakdownRows(outreachRows, r=>r.channel, STATE.lists["Outreach Channel"]), "Channel");
+  renderBreakdownTable($("#outreachRepTable"), outreachBreakdownRows(outreachRows, r=>r.sentBy, STATE.lists["Sales Team"]), "Rep");
+}
+
+/* ============================================================
+   VERIFICATION (demo mode only)
+   ============================================================ */
+function runVerification(crData, orData, os){
+  const expectedCR = {"CR-01":72.7,"CR-02":62.5,"CR-03":70.0,"CR-04":71.4,"CR-05":60.0,"CR-06":33.3,"CR-07":42.9,"CR-08":45.5,"CR-09":30.0,"CR-10":13.6,"CR-11":13.6,"CR-12":11.1,"CR-13":81.8,"CR-14":57.1};
+  const expectedOR = {"OR-01":60.0,"OR-02":40.0,"OR-03":66.7,"OR-04":40.0,"OR-05":26.7,"OR-06":66.7};
+  const rowsHtml = [];
+  let allPass = true;
+  crData.forEach(d => {
+    const actual = (d.rate*100).toFixed(1);
+    const exp = expectedCR[d.code];
+    const pass = Math.abs(actual-exp) < 0.05;
+    allPass = allPass && pass;
+    rowsHtml.push(`<tr><td>${d.code}</td><td>${d.name}</td><td>${exp.toFixed(1)}%</td><td>${actual}%</td><td class="${pass?'verify-pass':'verify-fail'}">${pass?'PASS':'FAIL'}</td></tr>`);
+  });
+  orData.forEach(d => {
+    const actual = (d.rate*100).toFixed(1);
+    const exp = expectedOR[d.code];
+    const pass = Math.abs(actual-exp) < 0.05;
+    allPass = allPass && pass;
+    rowsHtml.push(`<tr><td>${d.code}</td><td>${d.name}</td><td>${exp.toFixed(1)}%</td><td>${actual}%</td><td class="${pass?'verify-pass':'verify-fail'}">${pass?'PASS':'FAIL'}</td></tr>`);
+  });
+  const chaseOk = os.chaseList.length === 3;
+  const concludedOk = os.concluded === 15 && os.total === 20 && os.awaiting === 5;
+  rowsHtml.push(`<tr><td colspan="3">Chase list = 3</td><td>${os.chaseList.length}</td><td class="${chaseOk?'verify-pass':'verify-fail'}">${chaseOk?'PASS':'FAIL'}</td></tr>`);
+  rowsHtml.push(`<tr><td colspan="3">Outreach total/awaiting/concluded = 20/5/15</td><td>${os.total}/${os.awaiting}/${os.concluded}</td><td class="${concludedOk?'verify-pass':'verify-fail'}">${concludedOk?'PASS':'FAIL'}</td></tr>`);
+  allPass = allPass && chaseOk && concludedOk;
+
+  $("#verifyPanel").classList.remove("hidden");
+  $("#verifyPanel").innerHTML = `<strong>Fixture verification (${allPass?'<span class="verify-pass">ALL PASS</span>':'<span class="verify-fail">FAILURES FOUND</span>'})</strong>
+    <div class="table-scroll" style="margin-top:8px;"><table><thead><tr><th>Code</th><th>Name</th><th>Expected</th><th>Actual</th><th>Result</th></tr></thead><tbody>${rowsHtml.join("")}</tbody></table></div>`;
+  console.table(rowsHtml.length);
+}
+
+/* ============================================================
+   FILTER UI WIRING
+   ============================================================ */
+function populateFilterOptions(){
+  const repSel = $("#fRep"), sourceSel = $("#fSource"), productSel = $("#fProduct");
+  const reps = (STATE.lists["Sales Team"]||[]).filter(Boolean).length ? STATE.lists["Sales Team"].filter(Boolean) : Array.from(new Set(STATE.crm.map(r=>r.rep).filter(Boolean)));
+  const sources = (STATE.lists["Source / Platform"]||[]).filter(Boolean);
+  const products = (STATE.lists["Product Type"]||[]).filter(Boolean);
+  repSel.innerHTML = `<option value="">All reps</option>` + reps.map(r=>`<option value="${escapeHtml(r)}">${escapeHtml(r)}</option>`).join("");
+  sourceSel.innerHTML = `<option value="">All sources</option>` + sources.map(r=>`<option value="${escapeHtml(r)}">${escapeHtml(r)}</option>`).join("");
+  productSel.innerHTML = `<option value="">All products</option>` + products.map(r=>`<option value="${escapeHtml(r)}">${escapeHtml(r)}</option>`).join("");
+}
+
+function renderChips(){
+  const chips = [];
+  if(FILTERS.dateFrom) chips.push({label:`From ${$("#fDateFrom").value}`, clear:()=>{$("#fDateFrom").value="";FILTERS.dateFrom=null;}});
+  if(FILTERS.dateTo) chips.push({label:`To ${$("#fDateTo").value}`, clear:()=>{$("#fDateTo").value="";FILTERS.dateTo=null;}});
+  if(FILTERS.rep) chips.push({label:`Rep: ${FILTERS.rep}`, clear:()=>{$("#fRep").value="";FILTERS.rep="";}});
+  if(FILTERS.source) chips.push({label:`Source: ${FILTERS.source}`, clear:()=>{$("#fSource").value="";FILTERS.source="";}});
+  if(FILTERS.product) chips.push({label:`Product: ${FILTERS.product}`, clear:()=>{$("#fProduct").value="";FILTERS.product="";}});
+  $("#filterChips").innerHTML = chips.map((c,i) => `<span class="chip">${escapeHtml(c.label)}<button data-i="${i}" aria-label="Remove filter">×</button></span>`).join("");
+  $("#filterChips").querySelectorAll("button").forEach((btn,i) => {
+    btn.addEventListener("click", () => { chips[i].clear(); renderChips(); renderAll(); });
+  });
+}
+
+function wireFilters(){
+  $("#fDateFrom").addEventListener("change", e => { FILTERS.dateFrom = e.target.value ? new Date(e.target.value) : null; renderChips(); renderAll(); });
+  $("#fDateTo").addEventListener("change", e => { FILTERS.dateTo = e.target.value ? new Date(e.target.value) : null; renderChips(); renderAll(); });
+  $("#fRep").addEventListener("change", e => { FILTERS.rep = e.target.value; renderChips(); renderAll(); });
+  $("#fSource").addEventListener("change", e => { FILTERS.source = e.target.value; renderChips(); renderAll(); });
+  $("#fProduct").addEventListener("change", e => { FILTERS.product = e.target.value; renderChips(); renderAll(); });
+  $("#resetFiltersBtn").addEventListener("click", () => {
+    FILTERS.dateFrom=null;FILTERS.dateTo=null;FILTERS.rep="";FILTERS.source="";FILTERS.product="";
+    $("#fDateFrom").value="";$("#fDateTo").value="";$("#fRep").value="";$("#fSource").value="";$("#fProduct").value="";
+    renderChips(); renderAll();
+  });
+}
+
+/* ============================================================
+   LOAD / ERROR / INIT
+   ============================================================ */
+function showBanner(html, type){
+  $("#statusBanner").innerHTML = `<div class="banner ${type}">${html}</div>`;
+}
+function clearBanner(){ $("#statusBanner").innerHTML = ""; }
+function stampUpdated(){
+  const now = new Date();
+  $("#updatedStamp").textContent = "Updated " + String(now.getHours()).padStart(2,"0")+":"+String(now.getMinutes()).padStart(2,"0");
+}
+
+async function load(){
+  $("#refreshBtn").disabled = true;
+  showBanner(`<span class="loading-spinner"></span> Loading sales data…`, "info");
+  const demoRequested = new URLSearchParams(location.search).get("demo") === "1";
+  const useDemo = demoRequested || urlsArePlaceholders();
+  try{
+    let data;
+    if(useDemo){
+      data = buildDemoFixture();
+      STATE.isDemo = true;
+      $("#demoFlag").classList.remove("hidden");
+    } else {
+      data = await loadLive();
+      STATE.isDemo = false;
+      $("#demoFlag").classList.add("hidden");
+    }
+    STATE.crm = data.crm; STATE.outreach = data.outreach; STATE.feedback = data.feedback;
+    STATE.complaints = data.complaints; STATE.lists = data.lists;
+    populateFilterOptions();
+    clearBanner();
+    if(useDemo && !demoRequested){
+      showBanner(`Showing <strong>demo data</strong> — the five <code>SHEET_URLS</code> at the top of the script are still placeholders. Paste your published CSV links there to go live.`, "info");
+    }
+    stampUpdated();
+    renderAll();
+  } catch(err){
+    if(err.failures){
+      const list = err.failures.map(f => `<li><strong>${f.tab}</strong>: ${escapeHtml(f.reason)} — check it's published as CSV (File → Share → Publish to web → this tab → CSV) and the sheet is shared.</li>`).join("");
+      showBanner(`Could not load live data — the following tab(s) failed to fetch:<ul>${list}</ul>Falling back to demo data below so the dashboard still renders.`, "error");
+      const demo = buildDemoFixture();
+      STATE.crm = demo.crm; STATE.outreach = demo.outreach; STATE.feedback = demo.feedback;
+      STATE.complaints = demo.complaints; STATE.lists = demo.lists; STATE.isDemo = true;
+      $("#demoFlag").classList.remove("hidden");
+      populateFilterOptions();
+      stampUpdated();
+      renderAll();
+    } else {
+      showBanner(`Unexpected error loading the dashboard: ${escapeHtml(err.message||String(err))}`, "error");
+    }
+  } finally {
+    $("#refreshBtn").disabled = false;
+  }
+}
+
+$("#refreshBtn").addEventListener("click", load);
+$("#printBtn").addEventListener("click", () => window.print());
+wireFilters();
+load();
+</script>
+</body>
+</html>
