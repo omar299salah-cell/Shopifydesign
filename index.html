@@ -382,12 +382,14 @@ footer{margin:50px 0 30px;font-size:12px;color:var(--text-secondary);border-top:
 <script>
 /* ============================================================
    SHEET SOURCES — Factory Twenty One sales sheet.
-   Doc: 1LuRvvV_mfApNKtbu9wnTmmjWtJOJBmsUSI_OYOHM3yE
-   Requires Share → General access → "Anyone with the link" → Viewer,
-   otherwise these export URLs only work for someone logged into an
-   account that has access.
+   Published via File → Share → Publish to web (already enabled for
+   this document — that's what generated the base /pub link). Each
+   tab reuses that same publish ID with its own &gid=...&single=true,
+   which is the one Google endpoint that reliably sends
+   Access-Control-Allow-Origin for a page's fetch() to read (unlike
+   /export or /gviz, which are unofficial and CORS-flaky).
    ============================================================ */
-const SHEET_DOC_ID = "1LuRvvV_mfApNKtbu9wnTmmjWtJOJBmsUSI_OYOHM3yE";
+const SHEET_PUBLISH_BASE = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSYTKeNZVWKy43iQWSrCFBGE9zu-LJUE5XTx3BaRbG6FAZh3S0ned3Oo6TzoQBE5AI0hA2u-uwfGuXE/pub";
 const SHEET_GIDS = {
   crm:        "1971600686",
   outreach:   "2104827155",
@@ -395,13 +397,9 @@ const SHEET_GIDS = {
   complaints: "2138035729",
   lists:      "1731078066",
 };
-/* The plain /export endpoint works for direct navigation/download but
-   doesn't send Access-Control-Allow-Origin, so a page's fetch() to it
-   gets blocked by CORS. The gviz query endpoint is built for exactly
-   this (client-side embedding) and does send that header. */
 const SHEET_URLS = Object.fromEntries(
   Object.entries(SHEET_GIDS).map(([tab, gid]) =>
-    [tab, `https://docs.google.com/spreadsheets/d/${SHEET_DOC_ID}/gviz/tq?tqx=out:csv&gid=${gid}`])
+    [tab, `${SHEET_PUBLISH_BASE}?gid=${gid}&single=true&output=csv`])
 );
 
 /* ============================================================
