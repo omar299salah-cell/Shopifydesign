@@ -124,6 +124,25 @@ table{border-collapse:collapse;width:100%;}
 .chip{background:var(--surface-2);border:1px solid var(--border);border-radius:12px;padding:3px 10px;font-size:11px;display:flex;align-items:center;gap:6px;}
 .chip button{background:none;border:none;color:var(--text-secondary);font-weight:700;padding:0;font-size:13px;line-height:1;}
 
+/* ---------- upload panel ---------- */
+.upload-panel{background:var(--surface-2);border-bottom:1px solid var(--border);padding:20px 0 24px;}
+.upload-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;}
+@media (max-width:900px){.upload-grid{grid-template-columns:repeat(2,1fr);}}
+@media (max-width:520px){.upload-grid{grid-template-columns:1fr;}}
+.upload-slot{
+  background:var(--surface);border:2px dashed var(--border);border-radius:var(--radius);
+  padding:16px 12px;text-align:center;cursor:pointer;transition:border-color .15s,background .15s;
+  display:flex;flex-direction:column;align-items:center;gap:6px;min-height:120px;justify-content:center;
+}
+.upload-slot:hover,.upload-slot.dragover{border-color:var(--orange);background:var(--surface);}
+.upload-slot.loaded{border-style:solid;border-color:var(--orange);}
+.upload-slot .slot-title{font-family:var(--font-head);font-weight:800;font-size:13px;text-transform:uppercase;letter-spacing:.03em;}
+.upload-slot .slot-hint{font-size:10.5px;color:var(--text-secondary);}
+.upload-slot .slot-file{font-size:11.5px;color:var(--orange);font-weight:700;word-break:break-all;}
+.upload-slot .slot-check{font-size:18px;color:var(--orange);}
+.upload-slot input[type=file]{display:none;}
+.upload-actions{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;margin-top:14px;}
+
 /* ---------- status / error banner ---------- */
 #statusBanner{margin:14px 0;}
 .banner{padding:14px 16px;border-radius:var(--radius);font-size:14px;border:1px solid var(--border);}
@@ -220,7 +239,7 @@ footer{margin:50px 0 30px;font-size:12px;color:var(--text-secondary);border-top:
 @media print{
   :root{--bg:#fff;--surface:#fff;--surface-2:#f4f4f4;--text:#111;--text-secondary:#444;--border:#ccc;--masthead-bg:#fff;--masthead-text:#111;}
   .filterbar,.masthead-actions,#printBtn,.rail-card .table-scroll{overflow:visible;}
-  .filterbar{display:none;}
+  .filterbar,.upload-panel,.masthead-actions{display:none;}
   .panel{page-break-inside:avoid;margin:18px 0;}
   body{overflow-x:visible;}
   .chart-box{height:220px;}
@@ -238,14 +257,25 @@ footer{margin:50px 0 30px;font-size:12px;color:var(--text-secondary);border-top:
     </div>
     <div class="masthead-actions">
       <span class="demo-flag hidden" id="demoFlag">Demo data</span>
-      <span class="updated-stamp" id="updatedStamp">Not loaded yet</span>
+      <span class="updated-stamp" id="updatedStamp">No data loaded yet</span>
       <button class="btn secondary" id="printBtn" type="button">Print / PDF</button>
-      <button class="btn" id="refreshBtn" type="button">Refresh</button>
+      <button class="btn secondary" id="changeFilesBtn" type="button" style="border-color:#444;color:#fff;">Change Files</button>
     </div>
   </div>
 </header>
 
-<div class="filterbar" id="filterbar">
+<section class="upload-panel" id="uploadPanel">
+  <div class="container">
+    <div class="slab" style="margin-bottom:14px;"><span class="num">00 //</span><h2>Load Your Data</h2><span class="slab-sub">Export each tab as CSV, then drop it here — nothing leaves your browser</span></div>
+    <div class="upload-grid" id="uploadGrid"></div>
+    <div class="upload-actions">
+      <span id="uploadStatus" class="section-note" style="margin:0;">0 of 5 tabs loaded — CRM and Outreach are enough to see most of the dashboard.</span>
+      <button class="btn secondary" id="loadDemoBtn" type="button" style="border-color:var(--border);color:var(--text);">Use demo data instead</button>
+    </div>
+  </div>
+</section>
+
+<div class="filterbar hidden" id="filterbar">
   <div class="container filterbar-inner">
     <div class="filter-field">
       <label for="fDateFrom">Date from</label>
@@ -374,33 +404,25 @@ footer{margin:50px 0 30px;font-size:12px;color:var(--text-secondary);border-top:
   </div>
 
   <footer>
-    <div>Factory Twenty One — internal sales dashboard. Data refreshed on demand from the team's Google Sheet. No auto-polling.</div>
+    <div>Factory Twenty One — internal sales dashboard. Load data by dropping CSV exports below — nothing is uploaded anywhere, it's all read in your browser.</div>
     <div id="footerNote" style="margin-top:6px;"></div>
   </footer>
 </main>
 
 <script>
 /* ============================================================
-   SHEET SOURCES — Factory Twenty One sales sheet.
-   Published via File → Share → Publish to web (already enabled for
-   this document — that's what generated the base /pub link). Each
-   tab reuses that same publish ID with its own &gid=...&single=true,
-   which is the one Google endpoint that reliably sends
-   Access-Control-Allow-Origin for a page's fetch() to read (unlike
-   /export or /gviz, which are unofficial and CORS-flaky).
+   DATA TABS — export each of these from Google Sheets as CSV
+   (File → Download → Comma Separated Values, one tab at a time)
+   and drop the file onto the matching slot. Nothing is fetched
+   over the network and nothing leaves the browser.
    ============================================================ */
-const SHEET_PUBLISH_BASE = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSYTKeNZVWKy43iQWSrCFBGE9zu-LJUE5XTx3BaRbG6FAZh3S0ned3Oo6TzoQBE5AI0hA2u-uwfGuXE/pub";
-const SHEET_GIDS = {
-  crm:        "1971600686",
-  outreach:   "2104827155",
-  feedback:   "1203678473",
-  complaints: "2138035729",
-  lists:      "1731078066",
-};
-const SHEET_URLS = Object.fromEntries(
-  Object.entries(SHEET_GIDS).map(([tab, gid]) =>
-    [tab, `${SHEET_PUBLISH_BASE}?gid=${gid}&single=true&output=csv`])
-);
+const UPLOAD_TABS = [
+  {key:"crm",        label:"CRM",                hint:"Client pipeline",     keyColumn:"Client Name"},
+  {key:"outreach",   label:"Outreach",            hint:"Cold approach log",   keyColumn:"Brand Name"},
+  {key:"feedback",   label:"Client Feedback",     hint:"Post-delivery",       keyColumn:"Client Name"},
+  {key:"complaints", label:"Client Complaints",   hint:"Complaints log",      keyColumn:"Client Name"},
+  {key:"lists",      label:"Lists",               hint:"Option sets",        keyColumn:null},
+];
 
 /* ============================================================
    CONSTANTS — brand + business rules
@@ -837,45 +859,80 @@ function buildDemoFixture(){
 }
 
 /* ============================================================
-   LIVE FETCH
+   CSV UPLOAD — reads exported files locally, no network involved
    ============================================================ */
-async function fetchTab(url){
-  const res = await fetch(url, {cache:"no-store"});
-  if(!res.ok) throw new Error("HTTP "+res.status);
-  const text = await res.text();
-  if(/^\s*<!DOCTYPE html/i.test(text) || /<html/i.test(text.slice(0,200))){
-    throw new Error("Got an HTML page back instead of CSV — the tab is probably not published, or it's unshared.");
-  }
-  return toObjects(parseCSV(text));
+const UPLOADED_RAW = {crm:null, outreach:null, feedback:null, complaints:null, lists:null};
+
+function renderUploadSlots(){
+  $("#uploadGrid").innerHTML = UPLOAD_TABS.map(t => `
+    <label class="upload-slot" data-tab="${t.key}" for="file-${t.key}">
+      <span class="slot-check hidden">✓</span>
+      <span class="slot-title">${escapeHtml(t.label)}</span>
+      <span class="slot-hint">${escapeHtml(t.hint)}</span>
+      <span class="slot-file"></span>
+      <input type="file" id="file-${t.key}" accept=".csv,text/csv">
+    </label>
+  `).join("");
 }
 
-async function loadLive(){
-  const tabs = ["crm","outreach","feedback","complaints","lists"];
-  const results = await Promise.allSettled(tabs.map(t => fetchTab(SHEET_URLS[t])));
-  const failures = [];
-  const raw = {};
-  results.forEach((r,idx) => {
-    const tab = tabs[idx];
-    if(r.status === "fulfilled"){ raw[tab] = r.value; }
-    else { failures.push({tab, reason: r.reason && r.reason.message || String(r.reason)}); raw[tab] = []; }
+function updateSlotUI(tabKey, state, text){
+  const slot = document.querySelector(`.upload-slot[data-tab="${tabKey}"]`);
+  if(!slot) return;
+  slot.classList.toggle("loaded", state === "loaded");
+  slot.querySelector(".slot-check").classList.toggle("hidden", state !== "loaded");
+  slot.querySelector(".slot-file").textContent = text || "";
+}
+
+async function handleFile(tabKey, file){
+  if(!file) return;
+  try{
+    const text = await file.text();
+    const rawRows = toObjects(parseCSV(text));
+    const def = UPLOAD_TABS.find(t => t.key === tabKey);
+    if(def.keyColumn && rawRows.length && !(def.keyColumn in rawRows[0])){
+      updateSlotUI(tabKey, "error", `"${file.name}" doesn't have a "${def.keyColumn}" column — wrong tab?`);
+      return;
+    }
+    UPLOADED_RAW[tabKey] = rawRows;
+    updateSlotUI(tabKey, "loaded", file.name);
+    rebuildStateFromUploads();
+  } catch(err){
+    updateSlotUI(tabKey, "error", `Couldn't read "${file.name}": ${err.message}`);
+  }
+}
+
+function wireUploadSlots(){
+  UPLOAD_TABS.forEach(t => {
+    const slot = document.querySelector(`.upload-slot[data-tab="${t.key}"]`);
+    const input = slot.querySelector("input[type=file]");
+    input.addEventListener("change", e => handleFile(t.key, e.target.files[0]));
+    ["dragenter","dragover"].forEach(evt => slot.addEventListener(evt, e => { e.preventDefault(); slot.classList.add("dragover"); }));
+    ["dragleave","drop"].forEach(evt => slot.addEventListener(evt, e => { e.preventDefault(); slot.classList.remove("dragover"); }));
+    slot.addEventListener("drop", e => handleFile(t.key, e.dataTransfer.files[0]));
   });
-  if(failures.length){
-    const err = new Error("fetch-failed");
-    err.failures = failures;
-    err.raw = raw;
-    throw err;
-  }
-  return {
-    crm: raw.crm.map(normalizeCrmRow).filter(Boolean),
-    outreach: raw.outreach.map(normalizeOutreachRow).filter(Boolean),
-    feedback: raw.feedback.map(normalizeFeedbackRow).filter(Boolean),
-    complaints: raw.complaints.map(normalizeComplaintRow).filter(Boolean),
-    lists: buildLists(raw.lists),
-  };
 }
 
-function urlsArePlaceholders(){
-  return Object.values(SHEET_URLS).some(u => !u || u.indexOf("PASTE_") === 0 || u.trim()==="");
+function rebuildStateFromUploads(){
+  const loadedCount = Object.values(UPLOADED_RAW).filter(Boolean).length;
+  $("#uploadStatus").textContent = `${loadedCount} of 5 tabs loaded` + (loadedCount<5 ? " — CRM and Outreach are enough to see most of the dashboard." : ".");
+
+  STATE.crm = (UPLOADED_RAW.crm||[]).map(normalizeCrmRow).filter(Boolean);
+  STATE.outreach = (UPLOADED_RAW.outreach||[]).map(normalizeOutreachRow).filter(Boolean);
+  STATE.feedback = (UPLOADED_RAW.feedback||[]).map(normalizeFeedbackRow).filter(Boolean);
+  STATE.complaints = (UPLOADED_RAW.complaints||[]).map(normalizeComplaintRow).filter(Boolean);
+  STATE.lists = buildLists(UPLOADED_RAW.lists||[]);
+  STATE.isDemo = false;
+  $("#demoFlag").classList.add("hidden");
+
+  if(STATE.crm.length || STATE.outreach.length){
+    clearBanner();
+    populateFilterOptions();
+    $("#filterbar").classList.remove("hidden");
+    stampUpdated();
+    renderAll();
+  } else if(loadedCount > 0){
+    showBanner(`Loaded ${loadedCount} tab(s), but neither CRM nor Outreach has any rows yet — drop those two to see the dashboard.`, "info");
+  }
 }
 
 /* ============================================================
@@ -1421,54 +1478,29 @@ function stampUpdated(){
   $("#updatedStamp").textContent = "Updated " + String(now.getHours()).padStart(2,"0")+":"+String(now.getMinutes()).padStart(2,"0");
 }
 
-async function load(){
-  $("#refreshBtn").disabled = true;
-  showBanner(`<span class="loading-spinner"></span> Loading sales data…`, "info");
-  const demoRequested = new URLSearchParams(location.search).get("demo") === "1";
-  const useDemo = demoRequested || urlsArePlaceholders();
-  try{
-    let data;
-    if(useDemo){
-      data = buildDemoFixture();
-      STATE.isDemo = true;
-      $("#demoFlag").classList.remove("hidden");
-    } else {
-      data = await loadLive();
-      STATE.isDemo = false;
-      $("#demoFlag").classList.add("hidden");
-    }
-    STATE.crm = data.crm; STATE.outreach = data.outreach; STATE.feedback = data.feedback;
-    STATE.complaints = data.complaints; STATE.lists = data.lists;
-    populateFilterOptions();
-    clearBanner();
-    if(useDemo && !demoRequested){
-      showBanner(`Showing <strong>demo data</strong> — the five <code>SHEET_URLS</code> at the top of the script are still placeholders. Paste your published CSV links there to go live.`, "info");
-    }
-    stampUpdated();
-    renderAll();
-  } catch(err){
-    if(err.failures){
-      const list = err.failures.map(f => `<li><strong>${f.tab}</strong>: ${escapeHtml(f.reason)} — check it's published as CSV (File → Share → Publish to web → this tab → CSV) and the sheet is shared.</li>`).join("");
-      showBanner(`Could not load live data — the following tab(s) failed to fetch:<ul>${list}</ul>Falling back to demo data below so the dashboard still renders.`, "error");
-      const demo = buildDemoFixture();
-      STATE.crm = demo.crm; STATE.outreach = demo.outreach; STATE.feedback = demo.feedback;
-      STATE.complaints = demo.complaints; STATE.lists = demo.lists; STATE.isDemo = true;
-      $("#demoFlag").classList.remove("hidden");
-      populateFilterOptions();
-      stampUpdated();
-      renderAll();
-    } else {
-      showBanner(`Unexpected error loading the dashboard: ${escapeHtml(err.message||String(err))}`, "error");
-    }
-  } finally {
-    $("#refreshBtn").disabled = false;
-  }
+function loadDemo(){
+  const demo = buildDemoFixture();
+  STATE.crm = demo.crm; STATE.outreach = demo.outreach; STATE.feedback = demo.feedback;
+  STATE.complaints = demo.complaints; STATE.lists = demo.lists; STATE.isDemo = true;
+  $("#demoFlag").classList.remove("hidden");
+  $("#uploadStatus").textContent = "Showing demo data — drop your own CSV exports above to replace it.";
+  populateFilterOptions();
+  $("#filterbar").classList.remove("hidden");
+  clearBanner();
+  stampUpdated();
+  renderAll();
 }
 
-$("#refreshBtn").addEventListener("click", load);
-$("#printBtn").addEventListener("click", () => window.print());
+renderUploadSlots();
+wireUploadSlots();
 wireFilters();
-load();
+$("#loadDemoBtn").addEventListener("click", loadDemo);
+$("#changeFilesBtn").addEventListener("click", () => $("#uploadPanel").scrollIntoView({behavior:"smooth"}));
+$("#printBtn").addEventListener("click", () => window.print());
+
+if(new URLSearchParams(location.search).get("demo") === "1"){
+  loadDemo();
+}
 </script>
 </body>
 </html>
