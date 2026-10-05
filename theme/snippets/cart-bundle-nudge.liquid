@@ -1,0 +1,103 @@
+{% comment %}
+  Tells the shopper how close they are to the next mix & match bundle price,
+  using the same `custom.bundle_offer` collection metafield as the product page offer.
+
+  Usage:
+  {% render 'cart-bundle-nudge' %}
+{% endcomment %}
+{%- liquid
+  assign bundle_keys = ''
+  for item in cart.items
+    for c in item.product.collections
+      if c.metafields.custom.bundle_offer.value.tiers.size > 0
+        assign key = '|' | append: c.handle | append: '|'
+        unless bundle_keys contains key
+          assign bundle_keys = bundle_keys | append: key
+        endunless
+        break
+      endif
+    endfor
+  endfor
+  assign bundle_handles = bundle_keys | split: '|'
+-%}
+
+{%- for handle in bundle_handles -%}
+  {%- if handle == blank -%}
+    {%- continue -%}
+  {%- endif -%}
+  {%- liquid
+    assign bundle_collection = collections[handle]
+    assign tiers = bundle_collection.metafields.custom.bundle_offer.value.tiers
+
+    assign count = 0
+    for item in cart.items
+      assign item_handles = item.product.collections | map: 'handle'
+      if item_handles contains handle
+        assign count = count | plus: item.quantity
+      endif
+    endfor
+
+    assign next_qty = 0
+    assign next_price = 0
+    assign applied_qty = 0
+    assign applied_price = 0
+    for tier in tiers
+      if tier.qty > count and next_qty == 0
+        assign next_qty = tier.qty
+        assign next_price = tier.price | times: 100
+      endif
+      if tier.qty > 1 and tier.qty <= count
+        assign applied_qty = tier.qty
+        assign applied_price = tier.price | times: 100
+      endif
+    endfor
+    assign missing = next_qty | minus: count
+  -%}
+  <div class="cart-bundle-nudge{% if next_qty == 0 %} cart-bundle-nudge--done{% endif %}">
+    {%- if applied_qty > 0 -%}
+      <p class="cart-bundle-nudge__applied">
+        &#10003; {{ applied_qty }} {{ bundle_collection.title | escape }} for {{ applied_price | money }} applied
+      </p>
+    {%- endif -%}
+    {%- if next_qty > 0 -%}
+      <p class="cart-bundle-nudge__next">
+        Add {{ missing }} more and get any {{ next_qty }}
+        {{ bundle_collection.title | escape }} for <strong>{{ next_price | money }}</strong>
+      </p>
+      <a class="cart-bundle-nudge__link link underlined-link" href="{{ bundle_collection.url }}">
+        Shop {{ bundle_collection.title | escape }}
+      </a>
+    {%- endif -%}
+  </div>
+{%- endfor -%}
+
+{%- if bundle_keys != blank -%}
+  <style>
+    .cart-bundle-nudge {
+      margin: 0 0 1.2rem;
+      padding: 1rem 1.2rem;
+      border: 0.1rem dashed rgb(var(--color-button));
+      background: rgba(var(--color-button), 0.05);
+      font-size: 1.4rem;
+      line-height: 1.4;
+    }
+    .cart-bundle-nudge--done {
+      border-style: solid;
+    }
+    .cart-bundle-nudge p {
+      margin: 0;
+    }
+    .cart-bundle-nudge__applied {
+      color: rgb(var(--color-button));
+    }
+    .cart-bundle-nudge__applied + .cart-bundle-nudge__next {
+      margin-top: 0.4rem;
+    }
+    .cart-bundle-nudge__link {
+      display: inline-block;
+      margin-top: 0.4rem;
+      padding: 0.4rem 0;
+      font-size: 1.3rem;
+    }
+  </style>
+{%- endif -%}
