@@ -1,0 +1,123 @@
+{% comment %}
+  Renders the "Bundle & save" quantity-break offer on the product page.
+  The offer comes from the first collection of the product that has a
+  `custom.bundle_offer` JSON metafield, e.g.:
+    {"tiers":[{"qty":1,"price":150},{"qty":2,"price":240,"badge":"Most popular","selected":true}]}
+  Prices are display only: the actual discount is applied at checkout by the
+  matching automatic discounts (Shopify admin > Discounts), so keep both in sync.
+
+  Accepts:
+  - product: {Object} product object.
+  - section_id: {String} id of the section rendering the product form.
+  - product_form_id: {String} id of the product form.
+
+  Usage:
+  {% render 'bundle-offer', product: product, section_id: section_id, product_form_id: product_form_id %}
+{% endcomment %}
+{%- liquid
+  assign bundle_collection = blank
+  for c in product.collections
+    if c.metafields.custom.bundle_offer.value.tiers.size > 0
+      assign bundle_collection = c
+      break
+    endif
+  endfor
+-%}
+
+{%- if bundle_collection != blank -%}
+  {%- liquid
+    assign bundle = bundle_collection.metafields.custom.bundle_offer.value
+    assign unit_price = product.price
+    assign has_selected_tier = false
+    for tier in bundle.tiers
+      if tier.selected
+        assign has_selected_tier = true
+      endif
+    endfor
+  -%}
+  {{ 'bundle-offer.css' | asset_url | stylesheet_tag }}
+  <script src="{{ 'bundle-offer.js' | asset_url }}" defer="defer"></script>
+
+  <bundle-offer
+    class="bundle-offer"
+    data-section-id="{{ section_id }}"
+    data-form-id="{{ product_form_id }}"
+    data-product-id="{{ product.id }}"
+  >
+    <fieldset class="bundle-offer__fieldset">
+      <legend class="bundle-offer__heading">
+        <span class="bundle-offer__heading-line"></span>
+        <span class="bundle-offer__heading-text">Bundle &amp; save</span>
+        <span class="bundle-offer__heading-line"></span>
+      </legend>
+
+      {%- for tier in bundle.tiers -%}
+        {%- liquid
+          assign tier_price = tier.price | times: 100
+          assign compare_price = unit_price | times: tier.qty
+          assign saving = compare_price | minus: tier_price
+          assign checked = false
+          if tier.selected
+            assign checked = true
+          elsif has_selected_tier == false and forloop.first
+            assign checked = true
+          endif
+        -%}
+        <div class="bundle-offer__tier{% if checked %} is-selected{% endif %}">
+          <label class="bundle-offer__option">
+            <input
+              class="bundle-offer__input"
+              type="radio"
+              name="bundle-offer-{{ section_id }}"
+              value="{{ tier.qty }}"
+              {% if checked %}
+                checked
+              {% endif %}
+            >
+            <span class="bundle-offer__radio" aria-hidden="true"></span>
+            <span class="bundle-offer__info">
+              <span class="bundle-offer__title">
+                Buy {{ tier.qty }}
+                {%- if tier.badge != blank -%}
+                  <span class="bundle-offer__badge">{{ tier.badge | escape }}</span>
+                {%- endif -%}
+              </span>
+              <span class="bundle-offer__subtitle">
+                {%- if tier.qty > 1 -%}
+                  Mix any colours &amp; sizes
+                {%- else -%}
+                  Standard price
+                {%- endif -%}
+              </span>
+            </span>
+            <span class="bundle-offer__pricing">
+              <span class="bundle-offer__price">{{ tier_price | money }}</span>
+              {%- if saving > 0 -%}
+                <s class="bundle-offer__compare">{{ compare_price | money }}</s>
+                <span class="bundle-offer__saving">Save {{ saving | money }}</span>
+              {%- endif -%}
+            </span>
+          </label>
+          {%- if tier.qty > 1 -%}
+            <div class="bundle-offer__picks" data-picks {% unless checked %}hidden{% endunless %}></div>
+          {%- endif -%}
+        </div>
+      {%- endfor -%}
+    </fieldset>
+    <p class="bundle-offer__note">Bundle discount is applied automatically in your cart.</p>
+
+    <script type="application/json" data-bundle-products>
+      [
+        {%- for p in bundle_collection.products -%}
+          {"id": {{ p.id }}, "title": {{ p.title | json }}, "available": {{ p.available | json }}, "variants": [
+            {%- for v in p.variants -%}
+              {"id": {{ v.id }}, "title": {{ v.title | json }}, "available": {{ v.available | json }}}
+              {%- unless forloop.last %},{% endunless -%}
+            {%- endfor -%}
+          ]}
+          {%- unless forloop.last %},{% endunless -%}
+        {%- endfor -%}
+      ]
+    </script>
+  </bundle-offer>
+{%- endif -%}
