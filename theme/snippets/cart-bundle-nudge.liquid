@@ -41,16 +41,30 @@
     assign next_price = 0
     assign applied_qty = 0
     assign applied_price = 0
-    for tier in tiers
-      if tier.qty > count and next_qty == 0
-        assign next_qty = tier.qty
-        assign next_price = tier.price | times: 100
+    assign top_tier = tiers | last
+    assign top_price = top_tier.price | times: 100
+
+    if count < top_tier.qty
+      for tier in tiers
+        if tier.qty > count and next_qty == 0
+          assign next_qty = tier.qty
+          assign next_price = tier.price | times: 100
+        endif
+        if tier.qty > 1 and tier.qty <= count
+          assign applied_qty = tier.qty
+          assign applied_price = tier.price | times: 100
+        endif
+      endfor
+    else
+      # The biggest bundle repeats: every full set gets the bundle price.
+      assign sets = count | divided_by: top_tier.qty
+      assign applied_qty = sets | times: top_tier.qty
+      assign applied_price = sets | times: top_price
+      if applied_qty < count
+        assign next_qty = applied_qty | plus: top_tier.qty
+        assign next_price = applied_price | plus: top_price
       endif
-      if tier.qty > 1 and tier.qty <= count
-        assign applied_qty = tier.qty
-        assign applied_price = tier.price | times: 100
-      endif
-    endfor
+    endif
     assign missing = next_qty | minus: count
   -%}
   <div class="cart-bundle-nudge{% if next_qty == 0 %} cart-bundle-nudge--done{% endif %}">
