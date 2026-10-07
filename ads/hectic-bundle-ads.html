@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Hectic Bundle Ads</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anton&family=Bebas+Neue&family=Barlow+Condensed:wght@500;700&display=swap">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<style>
+  /* Layout: a gallery of 1080x1350 feed ads, scaled to fit the screen; each exports at full size. */
+  :root {
+    --red: #dc313b;
+    --red-deep: #b3222b;
+    --ink: #141012;
+    --paper: #ffffff;
+    --bone: #f4eeee;
+    --display: "Anton", "Impact", "Arial Narrow", sans-serif;
+    --head: "Bebas Neue", "Anton", "Arial Narrow", sans-serif;
+    --body: "Barlow Condensed", "Arial Narrow", Arial, sans-serif;
+  }
+  body { margin: 0; background: #e9e4e4; color: var(--ink); font-family: var(--body); padding: 24px 16px 64px; }
+  .intro { max-width: 1100px; margin: 0 auto 24px; }
+  .intro h1 { font-family: var(--display); font-weight: 400; font-size: 40px; margin: 0 0 6px; color: var(--red); letter-spacing: .01em; }
+  .intro p { margin: 0; font-size: 18px; }
+  .gallery { max-width: 1100px; margin: 0 auto; display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 28px; }
+  .card { display: grid; gap: 10px; }
+  .card h2 { font-family: var(--head); font-weight: 400; font-size: 24px; margin: 0; letter-spacing: .04em; }
+  .frame { width: 100%; aspect-ratio: 1080 / 1350; position: relative; overflow: hidden; box-shadow: 0 6px 20px rgba(20,16,18,.18); }
+  .frame > .ad { position: absolute; top: 0; left: 0; transform-origin: 0 0; }
+  .save { justify-self: start; font-family: var(--head); font-size: 20px; letter-spacing: .06em; background: var(--ink); color: var(--paper); border: 0; padding: 10px 18px; cursor: pointer; }
+  .save:focus-visible { outline: 3px solid var(--red); outline-offset: 3px; }
+  .save[disabled] { opacity: .6; cursor: progress; }
+  .stage { position: fixed; left: -99999px; top: 0; }
+
+  /* ---------- ad canvas (1080 x 1350) ---------- */
+  .ad { width: 1080px; height: 1350px; position: relative; overflow: hidden; font-family: var(--body); }
+  .ad img { display: block; width: 100%; height: 100%; object-fit: cover; }
+  .brand { font-family: var(--display); font-size: 34px; letter-spacing: .08em; }
+  .url { font-family: var(--head); font-size: 30px; letter-spacing: .12em; }
+  .was { font-family: var(--body); font-weight: 500; text-decoration: line-through; text-decoration-thickness: 3px; }
+
+  /* Ladder ad: photo left, red price ladder right */
+  .ladder { background: var(--red); color: var(--paper); }
+  .ladder .photo { position: absolute; inset: 0 auto 0 0; width: 560px; }
+  .ladder .panel { position: absolute; inset: 0 0 0 560px; padding: 70px 56px 56px; display: flex; flex-direction: column; }
+  .ladder .eyebrow { font-family: var(--head); font-size: 34px; letter-spacing: .14em; opacity: .9; }
+  .ladder .title { font-family: var(--display); font-size: 92px; line-height: .92; margin: 8px 0 36px; text-transform: uppercase; }
+  .ladder .rows { display: flex; flex-direction: column; gap: 22px; }
+  .ladder .row { display: grid; grid-template-columns: 112px 1fr; align-items: center; column-gap: 18px; border-top: 3px solid rgba(255,255,255,.45); padding-top: 18px; }
+  .ladder .qty { font-family: var(--display); font-size: 128px; line-height: .85; }
+  .ladder .for { font-family: var(--head); font-size: 34px; letter-spacing: .08em; line-height: 1; }
+  .ladder .price { font-family: var(--display); font-size: 70px; line-height: 1; }
+  .ladder .price small { font-size: 36px; margin-left: 6px; }
+  .ladder .was { font-size: 28px; opacity: .85; white-space: nowrap; }
+  .ladder .row.hot { background: var(--paper); color: var(--red); border-top: 0; padding: 16px 18px; margin-inline: -18px; position: relative; }
+  .ladder .tag { position: absolute; top: -16px; right: 14px; font-family: var(--head); font-size: 26px; letter-spacing: .1em; background: var(--ink); color: var(--paper); padding: 4px 12px; white-space: nowrap; }
+  .ladder .foot { margin-top: auto; display: flex; flex-direction: column; gap: 14px; }
+  .ladder .note { font-size: 30px; font-weight: 700; letter-spacing: .02em; }
+  .ladder .cta { font-family: var(--display); font-size: 42px; background: var(--ink); color: var(--paper); padding: 18px 26px; align-self: flex-start; letter-spacing: .04em; }
+  .ladder .badge { position: absolute; left: 32px; top: 32px; background: var(--paper); color: var(--red); padding: 10px 18px; }
+
+  /* Duo ad: photos side by side, giant offer stamped across */
+  .duo { background: var(--red); color: var(--paper); }
+  .duo .photos { position: absolute; left: 0; right: 0; top: 0; height: 780px; display: grid; grid-template-columns: repeat(var(--n), 1fr); gap: 8px; background: var(--paper); }
+  .duo .names { position: absolute; left: 0; right: 0; top: 716px; display: grid; grid-template-columns: repeat(var(--n), 1fr); }
+  .duo .names div { font-family: var(--head); font-size: 30px; letter-spacing: .1em; color: var(--ink); background: var(--paper); justify-self: center; padding: 6px 14px; white-space: nowrap; }
+  .duo .ribbon { position: absolute; top: 40px; right: -90px; transform: rotate(35deg); background: var(--ink); color: var(--paper); font-family: var(--head); font-size: 38px; letter-spacing: .12em; padding: 10px 120px; }
+  .duo .block { position: absolute; left: 0; right: 0; top: 780px; bottom: 0; padding: 34px 50px 40px; display: flex; flex-direction: column; }
+  .duo .lead { font-family: var(--head); font-size: 64px; letter-spacing: .06em; line-height: 1; }
+  .duo .big { font-family: var(--display); font-size: 250px; line-height: .86; letter-spacing: -.01em; white-space: nowrap; }
+  .duo .big span { font-size: 96px; margin-left: 14px; letter-spacing: .02em; }
+  .duo .sub { display: flex; justify-content: space-between; align-items: baseline; gap: 24px; margin-top: 14px; }
+  .duo .sub .line { font-family: var(--head); font-size: 44px; letter-spacing: .05em; }
+  .duo .sub .was { font-size: 40px; color: rgba(255,255,255,.85); white-space: nowrap; }
+  .duo .bottom { margin-top: auto; display: flex; justify-content: space-between; align-items: center; border-top: 3px solid rgba(255,255,255,.45); padding-top: 18px; }
+</style>
+</head>
+<body>
+  <header class="intro">
+    <h1>Hectic Studios · Bundle ads</h1>
+    <p>Six 1080×1350 feed ads. Photos load from your store, so open this file while online. Use "Save PNG" under each ad.</p>
+  </header>
+  <main class="gallery" id="gallery"></main>
+  <div class="stage" id="stage" aria-hidden="true"></div>
+
+<script>
+const CDN = "https://cdn.shopify.com/s/files/1/0596/7953/9263/files/";
+const img = (file) => CDN + file + "?width=1080";
+
+// Offer prices match the live store discounts. "Was" prices are the store's real former selling prices.
+const ADS = [
+  { id: "polos-ladder", name: "Polos · price ladder", type: "ladder",
+    photo: img("WhatsAppImage2026-06-13at5.22.57PM_5.jpg"), badge: "NEW PRICES",
+    eyebrow: "STRIPED POLO", title: "Mix any<br>2 polos",
+    rows: [ { qty: 1, price: 300, was: 550 }, { qty: 2, price: 500, was: 1100, hot: "BEST VALUE" } ],
+    note: "Baby Blue or Navy. Any size.", cta: "SHOP POLOS" },
+  { id: "polos-duo", name: "Polos · duo", type: "duo",
+    photos: [img("WhatsAppImage2026-06-13at5.22.57PM_4.jpg"), img("WhatsAppImage2026-06-13at5.22.57PM_5.jpg")],
+    names: ["BABY BLUE", "NAVY"], ribbon: "POLOS", qty: 2, price: 500, line: "Polos · mix the colours", was: 1100 },
+
+  { id: "pants-ladder", name: "Pants · price ladder", type: "ladder",
+    photo: img("WhatsAppImage2026-06-13at5.40.40PM_2.jpg"), badge: "NEW PRICES",
+    eyebrow: "BAGGY STRIPE PANTS", title: "Mix any<br>2 pairs",
+    rows: [ { qty: 1, price: 300, was: 599 }, { qty: 2, price: 500, was: 1198, hot: "BEST VALUE" } ],
+    note: "Yellow or Blue stripe. Any size.", cta: "SHOP PANTS" },
+  { id: "pants-duo", name: "Pants · duo", type: "duo",
+    photos: [img("WhatsAppImage2026-06-13at5.35.16PM.jpg"), img("WhatsAppImage2026-06-13at5.40.40PM.jpg")],
+    names: ["YELLOW STRIPE", "BLUE STRIPE"], ribbon: "PANTS", qty: 2, price: 500, line: "Pants · mix the colours", was: 1198 },
+
+  { id: "tanks-ladder", name: "Tank tops · price ladder", type: "ladder",
+    photo: img("WhatsAppImage2026-06-13at5.42.42PM.jpg"), badge: "MIX & MATCH",
+    eyebrow: "RIBBED TANK TOPS", title: "The more<br>you mix",
+    rows: [ { qty: 1, price: 150 }, { qty: 2, price: 250, was: 300 }, { qty: 3, price: 300, was: 450, hot: "BEST VALUE" } ],
+    note: "4 colours. Any size.", cta: "SHOP TANKS" },
+  { id: "tanks-duo", name: "Tank tops · four colours", type: "duo",
+    photos: [img("WhatsAppImage2026-06-13at5.42.41PM_3.jpg"), img("WhatsApp_Image_2026-06-13_at_5.42.41_PM.jpg"),
+             img("WhatsApp_Image_2026-06-13_at_5.42.41_PM_2.jpg"), img("WhatsApp_Image_2026-06-13_at_5.42.41_PM_1.jpg")],
+    names: ["YELLOW", "NAVY", "WHITE", "BURGUNDY"], ribbon: "TANK TOPS", qty: 3, price: 300,
+    line: "Tank tops · or 2 for 250", was: 450 },
+];
+
+const fmt = (n) => n.toLocaleString("en-US");
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+
+function ladderHTML(a) {
+  const rows = a.rows.map((r) => `
+    <div class="row${r.hot ? " hot" : ""}">
+      <div class="qty">${r.qty}</div>
+      <div>
+        ${r.hot ? `<span class="tag">${esc(r.hot)}</span>` : ""}<div class="for">FOR</div>
+        <div class="price">${fmt(r.price)}<small>EGP</small></div>
+        ${r.was ? `<div class="was">instead of ${fmt(r.was)} EGP</div>` : ""}
+      </div>
+    </div>`).join("");
+  return `
+    <div class="ad ladder">
+      <div class="photo"><img crossorigin="anonymous" src="${a.photo}" alt=""></div>
+      <div class="badge brand">${esc(a.badge)}</div>
+      <div class="panel">
+        <div class="eyebrow">${esc(a.eyebrow)}</div>
+        <div class="title">${a.title}</div>
+        <div class="rows">${rows}</div>
+        <div class="foot">
+          <div class="note">${esc(a.note)}</div>
+          <div class="cta">${esc(a.cta)} →</div>
+          <div class="url">HECTICSTDS.COM</div>
+        </div>
+      </div>
+    </div>`;
+}
+
+function duoHTML(a) {
+  const n = a.photos.length;
+  return `
+    <div class="ad duo" style="--n:${n}">
+      <div class="photos">${a.photos.map((p) => `<img crossorigin="anonymous" src="${p}" alt="">`).join("")}</div>
+      <div class="names">${a.names.map((t) => `<div>${esc(t)}</div>`).join("")}</div>
+      <div class="ribbon">${esc(a.ribbon)}</div>
+      <div class="block">
+        <div class="lead">ANY ${a.qty} FOR</div>
+        <div class="big">${fmt(a.price)}<span>EGP</span></div>
+        <div class="sub"><div class="line">${esc(a.line)}</div><div class="was">instead of ${fmt(a.was)} EGP</div></div>
+        <div class="bottom"><div class="brand">HECTIC STUDIOS</div><div class="url">HECTICSTDS.COM</div></div>
+      </div>
+    </div>`;
+}
+
+const gallery = document.getElementById("gallery");
+for (const a of ADS) {
+  const card = document.createElement("section");
+  card.className = "card";
+  card.innerHTML = `<h2>${esc(a.name)}</h2><div class="frame">${a.type === "ladder" ? ladderHTML(a) : duoHTML(a)}</div>
+    <button class="save" id="save-${a.id}" type="button">Save PNG</button>`;
+  gallery.appendChild(card);
+  card.querySelector(".save").addEventListener("click", (e) => savePNG(a, e.currentTarget));
+}
+
+function fit() {
+  document.querySelectorAll(".frame").forEach((f) => {
+    f.firstElementChild.style.transform = `scale(${f.clientWidth / 1080})`;
+  });
+}
+addEventListener("resize", fit);
+fit();
+
+async function savePNG(a, btn) {
+  btn.disabled = true;
+  btn.textContent = "Saving…";
+  const stage = document.getElementById("stage");
+  stage.innerHTML = a.type === "ladder" ? ladderHTML(a) : duoHTML(a);
+  try {
+    await document.fonts.ready;
+    await Promise.all([...stage.querySelectorAll("img")].map((i) => i.complete ? 0 : new Promise((r) => { i.onload = i.onerror = r; })));
+    const canvas = await html2canvas(stage.firstElementChild, { useCORS: true, scale: 1, width: 1080, height: 1350, backgroundColor: null });
+    const link = document.createElement("a");
+    link.download = `hectic-${a.id}.png`;
+    link.href = canvas.toDataURL("image/png");
+    link.click();
+    btn.textContent = "Saved";
+  } catch (err) {
+    console.error(err);
+    btn.textContent = "Couldn't save. Take a screenshot instead";
+  } finally {
+    stage.innerHTML = "";
+    setTimeout(() => { btn.disabled = false; btn.textContent = "Save PNG"; }, 2500);
+  }
+}
+</script>
+</body>
+</html>

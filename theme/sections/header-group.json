@@ -17,28 +17,28 @@
         "announcement-bar-0": {
           "type": "announcement",
           "settings": {
-            "text": "EVERYTHING UNDER 200 EGP",
+            "text": "MIX & MATCH BUNDLES ON EVERYTHING",
             "link": "shopify://collections/all-products"
           }
         },
         "announcement-bar-tanks": {
           "type": "announcement",
           "settings": {
-            "text": "MIX & MATCH: ANY 3 TANK TOPS FOR 300 EGP",
+            "text": "TANK TOPS: 2 FOR 250 EGP \u00b7 3 FOR 300 EGP",
             "link": "shopify://collections/tank-tops"
           }
         },
         "announcement-bar-polos": {
           "type": "announcement",
           "settings": {
-            "text": "ANY 2 POLOS FOR 300 EGP",
+            "text": "ANY 2 POLOS FOR 500 EGP",
             "link": "shopify://collections/polos"
           }
         },
         "announcement-bar-pants": {
           "type": "announcement",
           "settings": {
-            "text": "ANY 2 PANTS FOR 300 EGP",
+            "text": "ANY 2 PANTS FOR 500 EGP",
             "link": "shopify://collections/pants"
           }
         }
