@@ -31,14 +31,14 @@
         "announcement-bar-polos": {
           "type": "announcement",
           "settings": {
-            "text": "ANY 2 POLOS FOR 500 EGP",
+            "text": "ANY 2 POLOS FOR 300 EGP",
             "link": "shopify://collections/polos"
           }
         },
         "announcement-bar-pants": {
           "type": "announcement",
           "settings": {
-            "text": "ANY 2 PANTS FOR 500 EGP",
+            "text": "ANY 2 PANTS FOR 300 EGP",
             "link": "shopify://collections/pants"
           }
         }
