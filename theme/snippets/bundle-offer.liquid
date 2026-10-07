@@ -28,6 +28,10 @@
   {%- liquid
     assign bundle = bundle_collection.metafields.custom.bundle_offer.value
     assign unit_price = product.price
+    assign unit_compare = product.compare_at_price | default: product.price
+    if unit_compare < unit_price
+      assign unit_compare = unit_price
+    endif
     assign has_selected_tier = false
     for tier in bundle.tiers
       if tier.selected
@@ -54,7 +58,7 @@
       {%- for tier in bundle.tiers -%}
         {%- liquid
           assign tier_price = tier.price | times: 100
-          assign compare_price = unit_price | times: tier.qty
+          assign compare_price = unit_compare | times: tier.qty
           assign saving = compare_price | minus: tier_price
           assign checked = false
           if tier.selected

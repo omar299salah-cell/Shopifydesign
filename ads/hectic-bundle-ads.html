@@ -88,36 +88,36 @@
 const CDN = "https://cdn.shopify.com/s/files/1/0596/7953/9263/files/";
 const img = (file) => CDN + file + "?width=1080";
 
-// Offer prices match the live store discounts. "Was" prices are the store's real former selling prices.
+// Offer prices match the live store discounts. "Instead of" prices are the start-of-season prices.
 const ADS = [
   { id: "polos-ladder", name: "Polos · price ladder", type: "ladder",
     photo: img("WhatsAppImage2026-06-13at5.22.57PM_5.jpg"), badge: "NEW PRICES",
     eyebrow: "STRIPED POLO", title: "Mix any<br>2 polos",
-    rows: [ { qty: 1, price: 300, was: 550 }, { qty: 2, price: 500, was: 1100, hot: "BEST VALUE" } ],
+    rows: [ { qty: 1, price: 300, was: 800 }, { qty: 2, price: 500, was: 1600, hot: "BEST VALUE" } ],
     note: "Baby Blue or Navy. Any size.", cta: "SHOP POLOS" },
   { id: "polos-duo", name: "Polos · duo", type: "duo",
     photos: [img("WhatsAppImage2026-06-13at5.22.57PM_4.jpg"), img("WhatsAppImage2026-06-13at5.22.57PM_5.jpg")],
-    names: ["BABY BLUE", "NAVY"], ribbon: "POLOS", qty: 2, price: 500, line: "Polos · mix the colours", was: 1100 },
+    names: ["BABY BLUE", "NAVY"], ribbon: "POLOS", qty: 2, price: 500, line: "Polos · mix the colours", was: 1600 },
 
   { id: "pants-ladder", name: "Pants · price ladder", type: "ladder",
     photo: img("WhatsAppImage2026-06-13at5.40.40PM_2.jpg"), badge: "NEW PRICES",
     eyebrow: "BAGGY STRIPE PANTS", title: "Mix any<br>2 pairs",
-    rows: [ { qty: 1, price: 300, was: 599 }, { qty: 2, price: 500, was: 1198, hot: "BEST VALUE" } ],
+    rows: [ { qty: 1, price: 300, was: 800 }, { qty: 2, price: 500, was: 1600, hot: "BEST VALUE" } ],
     note: "Yellow or Blue stripe. Any size.", cta: "SHOP PANTS" },
   { id: "pants-duo", name: "Pants · duo", type: "duo",
     photos: [img("WhatsAppImage2026-06-13at5.35.16PM.jpg"), img("WhatsAppImage2026-06-13at5.40.40PM.jpg")],
-    names: ["YELLOW STRIPE", "BLUE STRIPE"], ribbon: "PANTS", qty: 2, price: 500, line: "Pants · mix the colours", was: 1198 },
+    names: ["YELLOW STRIPE", "BLUE STRIPE"], ribbon: "PANTS", qty: 2, price: 500, line: "Pants · mix the colours", was: 1600 },
 
   { id: "tanks-ladder", name: "Tank tops · price ladder", type: "ladder",
     photo: img("WhatsAppImage2026-06-13at5.42.42PM.jpg"), badge: "MIX & MATCH",
     eyebrow: "RIBBED TANK TOPS", title: "The more<br>you mix",
-    rows: [ { qty: 1, price: 150 }, { qty: 2, price: 250, was: 300 }, { qty: 3, price: 300, was: 450, hot: "BEST VALUE" } ],
+    rows: [ { qty: 1, price: 150, was: 500 }, { qty: 2, price: 250, was: 1000 }, { qty: 3, price: 300, was: 1500, hot: "BEST VALUE" } ],
     note: "4 colours. Any size.", cta: "SHOP TANKS" },
   { id: "tanks-duo", name: "Tank tops · four colours", type: "duo",
     photos: [img("WhatsAppImage2026-06-13at5.42.41PM_3.jpg"), img("WhatsApp_Image_2026-06-13_at_5.42.41_PM.jpg"),
              img("WhatsApp_Image_2026-06-13_at_5.42.41_PM_2.jpg"), img("WhatsApp_Image_2026-06-13_at_5.42.41_PM_1.jpg")],
     names: ["YELLOW", "NAVY", "WHITE", "BURGUNDY"], ribbon: "TANK TOPS", qty: 3, price: 300,
-    line: "Tank tops · or 2 for 250", was: 450 },
+    line: "Tank tops · or 2 for 250", was: 1500 },
 ];
 
 const fmt = (n) => n.toLocaleString("en-US");
